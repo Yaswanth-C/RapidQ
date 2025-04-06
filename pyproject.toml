@@ -8,9 +8,13 @@ authors = [
 license = {text = "BSD 3-Clause License"}
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = [
-]
+dynamic = ["dependencies"]
 
+[tool.poetry]
+requires-poetry = "=2.1.2"
+
+[tool.poetry.dependencies]
+redis = "5.2.1"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
