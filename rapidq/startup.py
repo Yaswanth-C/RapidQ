@@ -1,8 +1,4 @@
 import argparse
-import os
-import sys
-from importlib import import_module
-
 from rapidq.master import main_process
 
 
@@ -21,18 +17,14 @@ def parse_args():
         # required=True,
     )
     parser.add_argument(
-        "-w", "--workers", type=int, default=1, help="The number of worker processes to use."
+        "-w",
+        "--workers",
+        type=int,
+        default=1,
+        help="The number of worker processes to use.",
     )
     args = parser.parse_args()
     return args
-
-
-def _import_module(module_name):
-    current_path = os.getcwd()
-    if current_path not in sys.path:
-        sys.path.append(current_path)
-    _module = import_module(module_name)
-    return _module
 
 
 def main():
@@ -41,8 +33,5 @@ def main():
     """
     args = parse_args()
     print("Welcome to RapidQ!")
-    module = None
-    if args.module:
-        module = _import_module(args.module)
-    main_process(workers=args.workers)
+    main_process(workers=args.workers, module_name=args.module)
     return 0
