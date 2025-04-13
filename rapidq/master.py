@@ -1,4 +1,5 @@
 import time
+import sys
 from typing import Dict
 from multiprocessing import Process, Queue, Event, Value, Manager
 
@@ -120,6 +121,7 @@ def main_process(workers: int, module_name: str):
             time.sleep(1)
         except KeyboardInterrupt:
             master.shutdown()
+            sys.exit(1)
 
     master.boot_complete = True
 
@@ -144,4 +146,4 @@ def main_process(workers: int, module_name: str):
             print(error)
             master.shutdown()
             time.sleep(2)
-            break
+            sys.exit(1)

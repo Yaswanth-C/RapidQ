@@ -65,7 +65,8 @@ class Worker:
         """
         Start the worker.
         """
-        import_module(self.module_name)
+        if self.module_name:
+            import_module(self.module_name)
         self.event.set()
         self.worker_pid = os.getpid()
         self.update_state(WorkerState.BOOTING)
@@ -111,6 +112,9 @@ class Worker:
         # TODO: handle exceptions also
         self.update_state(WorkerState.BUSY)
         task_callable = TaskRegistry.fetch(task.task_name)
+        if not task_callable:
+            self.logger(f"Got unregistered task `{task.task_name}`")
+            return 1
         self.logger(task_callable)
         task_result = task_callable(*task.args, **task.kwargs)
         return 0
