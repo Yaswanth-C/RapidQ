@@ -39,6 +39,11 @@ class BackGroundTask:
 
 def background_task(name: str = None):
     def decorator(func):
+        if not name:
+            raise RuntimeError(
+                f"You must provide a valid name for the task: {func.__module__}.{func.__name__}"
+            )
+
         @wraps(func)
         def wrapped_func(*args, **kwargs):
             broker_class = get_broker_class()

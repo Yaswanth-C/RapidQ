@@ -50,7 +50,12 @@ class Worker:
         """
         Start the worker
         """
-        self.start()
+        try:
+            self.start()
+        except Exception as error:
+            self.stop()
+            self.logger("Startup failed!")
+            self.logger(error)
 
     def update_state(self, state: str):
         self.worker_state[self.name] = state

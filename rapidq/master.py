@@ -52,7 +52,7 @@ class MasterProcess:
             worker_state=self.worker_state,
             module_name=self.module_name,
         )
-        self.logger(f"{worker.name} {id(worker)}")
+
         # NOTE: I am well aware of the state duplication when the process is started
         process = Process(
             target=worker,
@@ -119,6 +119,12 @@ def main_process(workers: int, module_name: str):
                 break
             master.logger("waiting for workers to boot up")
             time.sleep(1)
+
+            # check for any abnormal shutdown event.
+            if list(master.workers.values())[0].shutdown_event.is_set():
+                # worker didn't boot, there is something wrong with the setup.
+                master.shutdown()
+                sys.exit(1)
         except KeyboardInterrupt:
             master.shutdown()
             sys.exit(1)
