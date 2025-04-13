@@ -98,9 +98,6 @@ class Worker:
         Flush task queue and sets `shutdown_event`.
         """
         if not self.shutdown_event.is_set():
-            self.logger(
-                f"worker {self.name} {self.process.pid} is preparing to shutdown"
-            )
             self.shutdown_event.set()
             self.flush_tasks()
 
@@ -115,7 +112,7 @@ class Worker:
         if not task_callable:
             self.logger(f"Got unregistered task `{task.task_name}`")
             return 1
-        self.logger(task_callable)
+
         task_result = task_callable(*task.args, **task.kwargs)
         return 0
 

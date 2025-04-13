@@ -97,14 +97,14 @@ class MasterProcess:
     def shutdown(self):
         for worker in self.workers.values():
             self.logger(
-                f"waiting for {worker.process.name} - {worker.process.pid} to exit !"
+                f"waiting for {worker.process.name} - PID: {worker.process.pid} to exit!"
             )
             worker.stop()
             if worker.process.is_alive():
-                worker.logger(f"alive, killing {worker.process.pid} - {worker.name}")
+                worker.logger(f"alive, killing. PID: {worker.process.pid}")
                 worker.process.terminate()
             worker.join(1)
-        print("shutting down master")
+        self.logger("shutting down master")
 
 
 def main_process(workers: int, module_name: str):
@@ -127,8 +127,6 @@ def main_process(workers: int, module_name: str):
 
     while True:
         try:
-            master.logger(master.worker_state)
-
             for worker_name, _state in master.idle_workers:
                 pending_message_ids = master.queued_tasks
                 if not pending_message_ids:
@@ -141,7 +139,7 @@ def main_process(workers: int, module_name: str):
                         message_id=pending_message_ids.pop(0).decode()
                     )
                 )
-            time.sleep(1)
+            time.sleep(0.2)  # 200ms
         except (KeyboardInterrupt, Exception) as error:
             print(error)
             master.shutdown()
