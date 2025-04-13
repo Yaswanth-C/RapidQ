@@ -39,7 +39,7 @@ class Worker:
         self.worker_pid: int = None
 
         self.name: str = name
-        self.assigned_tasks: Queue = queue
+        self.task_queue: Queue = queue
         self.event: SyncEvent = event
         self.shutdown_event: SyncEvent = shutdown_event
         self.counter = process_counter
@@ -80,9 +80,9 @@ class Worker:
         """
         Removes all the assigned tasks from the worker's task queue.
         """
-        while not self.assigned_tasks.empty():
+        while not self.task_queue.empty():
             try:
-                self.assigned_tasks.get(block=False)
+                self.task_queue.get(block=False)
             except Empty:
                 pass
 
@@ -126,7 +126,7 @@ class Worker:
         # Run the loop until this event is set by master.
         while not self.shutdown_event.is_set():
             try:
-                task = self.assigned_tasks.get(block=False)
+                task = self.task_queue.get(block=False)
             except Empty:
                 task = None
             if task:

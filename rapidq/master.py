@@ -134,7 +134,7 @@ def main_process(workers: int, module_name: str):
 
                 worker = master.workers[worker_name]
                 # assign the task to the idle worker
-                worker.assigned_tasks.put(
+                worker.task_queue.put(
                     master.broker.dequeue_message(
                         message_id=pending_message_ids.pop(0).decode()
                     )
