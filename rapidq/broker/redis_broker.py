@@ -42,6 +42,13 @@ class RedisBroker(Broker):
         self.client.srem(self.TASK_KEY, message_id)
         return message
 
+    def flush(self):
+        pattern = "rapidq*"
+        pipe = self.client.pipeline()
+        for key in self.client.scan_iter(match=pattern):
+            pipe.delete(key)
+        pipe.execute()
+
 
 def get_broker_class() -> Type[Broker]:
     return RedisBroker

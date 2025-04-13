@@ -22,3 +22,8 @@ class Broker:
         Remove a message from broker using message id.
         Returns the message being removed.
         """
+
+    def flush(self) -> None:
+        """
+        Flush the broker.
+        """

@@ -143,5 +143,4 @@ def main_process(workers: int, module_name: str):
         except (KeyboardInterrupt, Exception) as error:
             print(error)
             master.shutdown()
-            time.sleep(2)
             sys.exit(1)
