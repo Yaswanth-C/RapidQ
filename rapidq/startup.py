@@ -1,7 +1,10 @@
 import argparse
 import sys
+from multiprocessing import cpu_count
 from rapidq.master import main_process
 from rapidq.broker import get_broker_class
+
+CPU_COUNT = min(4, cpu_count())
 
 
 def parse_args():
@@ -22,7 +25,7 @@ def parse_args():
         "-w",
         "--workers",
         type=int,
-        default=1,
+        default=CPU_COUNT,
         help="The number of worker processes to use.",
     )
     parser.add_argument(
