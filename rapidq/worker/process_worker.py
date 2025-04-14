@@ -21,7 +21,6 @@ class Worker:
     def __init__(
         self,
         queue: Queue,
-        event: SyncEvent,
         name: str,
         shutdown_event: SyncEvent,
         process_counter: Synchronized,
@@ -33,7 +32,6 @@ class Worker:
 
         self.name: str = name
         self.task_queue: Queue = queue
-        self.event: SyncEvent = event
         self.shutdown_event: SyncEvent = shutdown_event
         self.counter = process_counter
         self.worker_state = worker_state
@@ -65,7 +63,6 @@ class Worker:
         """
         if self.module_name:
             import_module(self.module_name)
-        self.event.set()
         self.worker_pid = os.getpid()
         self.update_state(WorkerState.BOOTING)
 

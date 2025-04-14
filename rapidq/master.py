@@ -40,12 +40,10 @@ class MasterProcess:
         Create and return a single worker process.
         """
         worker_queue = Queue()
-        worker_event = Event()
         shutdown_event = Event()
         process_name = f"Worker Process-{worker_num}"
         worker = Worker(
             queue=worker_queue,
-            event=worker_event,
             name=process_name,
             shutdown_event=shutdown_event,
             process_counter=self.process_counter,
