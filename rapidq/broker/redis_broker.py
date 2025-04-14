@@ -1,3 +1,4 @@
+import os
 from typing import Type
 import redis
 from rapidq.message import Message
@@ -12,17 +13,27 @@ class RedisBroker(Broker):
     MESSAGE_PREFIX = "rapidq.message|"
     TASK_KEY = "rapidq.queued_tasks"
 
-    def __init__(self, connection_params: dict = None):
+    def __init__(self, connection_params: dict = None, serialization: str = None):
         if not connection_params:
             connection_params = {}
-        self.client = redis.Redis(**connection_params)
+
+        serialization = os.environ.get("RAPIDQ_BROKER_SERIALIZER", "json")
+        if serialization not in ("pickle", "json"):
+            raise RuntimeError("serialization must be either `pickle` or `json`")
+        self.serialization = serialization
+
+        connection_params.setdefault(
+            "url", os.environ.get("RAPIDQ_BROKER_URL", "redis://localhost:6379")
+        )
+        self.client = redis.Redis.from_url(**connection_params)
 
     def generate_message_key(self, message_id: str):
         return f"{self.MESSAGE_PREFIX}{message_id}"
 
     def enqueue_message(self, message: Message):
         key = self.generate_message_key(message.message_id)
-        self.client.set(key, message.json())
+        _data = message.pickle() if self.serialization == "pickle" else message.json()
+        self.client.set(key, _data)
         # This below Redis set will be monitored by master.
         self.client.sadd(self.TASK_KEY, message.message_id)
 
@@ -31,8 +42,11 @@ class RedisBroker(Broker):
 
     def fetch_message(self, message_id: str) -> Message:
         key = self.generate_message_key(message_id)
-        json_str = self.client.get(key)
-        return Message.from_json(json_str)
+        byte_or_str = self.client.get(key)
+
+        if self.serialization == "pickle":
+            return Message.from_pickle_bytes(byte_or_str)
+        return Message.from_json(byte_or_str)
 
     def dequeue_message(self, message_id: str):
         key = self.generate_message_key(message_id)

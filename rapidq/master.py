@@ -139,12 +139,20 @@ def main_process(workers: int, module_name: str):
                     break
 
                 worker = master.workers[worker_name]
-                # assign the task to the idle worker
-                worker.task_queue.put(
-                    master.broker.dequeue_message(
-                        message_id=pending_message_ids.pop(0).decode()
+                try:
+                    message_id = pending_message_ids.pop(0).decode()
+                    message = master.broker.dequeue_message(message_id=message_id)
+                except UnicodeDecodeError as error:
+                    master.logger(
+                        f"Unable to decode message! message_id: {message_id} \n"
+                        "You have configured different serialization strategies"
+                        " for RapidQ and your project.\nCheck configuration."
+                        "You will have to restart the workers with correct serialization. Or flush the broker."
                     )
-                )
+                    raise error
+
+                # assign the task to the idle worker
+                worker.task_queue.put(message)
             time.sleep(0.2)  # 200ms
         except (KeyboardInterrupt, Exception) as error:
             print(error)
