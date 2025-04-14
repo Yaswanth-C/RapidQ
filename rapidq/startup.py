@@ -31,18 +31,6 @@ def parse_args():
         help="The number of worker processes to use.",
     )
     parser.add_argument(
-        "--broker-serializer",
-        type=str,
-        default="json",
-        help="The type of serialization to use for broker communication. (json/pickle)",
-    )
-    parser.add_argument(
-        "--broker-url",
-        type=str,
-        default="redis://localhost:6379",
-        help="URL to use for connecting to the broker. eg: redis://localhost:6379",
-    )
-    parser.add_argument(
         "--flush",
         action="store_true",
         help="Flush the broker and exit",
