@@ -1,17 +1,28 @@
 [project]
 name = "RapidQ"
 version = "0.1.0"
-description = ""
+description = "A lightweight and fast background task processing library for Python, developed with simplicity and understandability in mind."
 authors = [
     {name = "Yaswanth C",email = "yaswanthc.dev@gmail.com"}
 ]
 license = {text = "BSD 3-Clause License"}
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = [
-]
+dynamic = ["dependencies"]
 
+[tool.poetry]
+requires-poetry = "=2.1.2"
+
+[tool.poetry.dependencies]
+redis = "5.2.1"
+
+[tool.poetry.group.dev.dependencies]
+black = "25.1.0"
+pre-commit = "4.2.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+rapidq = "rapidq.__main__:main"
