@@ -4,6 +4,7 @@ import sys
 from multiprocessing import cpu_count
 from rapidq.master import main_process
 from rapidq.broker import get_broker_class
+from rapidq.utils import import_module
 
 CPU_COUNT = min(4, cpu_count())
 
@@ -50,15 +51,17 @@ def parse_args():
     return args
 
 
-def configure(configuration: dict):
+def read_config_from_module(module_path: str):
+    module = import_module(module_path)
+
     configurable_keys = (
         "RAPIDQ_BROKER_SERIALIZER",
         "RAPIDQ_BROKER_URL",
     )
     for key in configurable_keys:
-        if not configuration.get(key):
+        if not getattr(module, key, None):
             continue
-        os.environ[key] = str(configuration[key])
+        os.environ[key] = str(getattr(module, key))
 
 
 def main():
@@ -66,12 +69,9 @@ def main():
     Main entry point for RapidQ.
     """
     args = parse_args()
-    configure(
-        {
-            "RAPIDQ_BROKER_SERIALIZER": args.broker_serializer,
-            "RAPIDQ_BROKER_URL": args.broker_url,
-        }
-    )
+
+    if args.module:
+        import_module(args.module)
 
     if args.flush:
         broker_class = get_broker_class()

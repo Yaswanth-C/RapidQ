@@ -8,16 +8,9 @@ from multiprocessing.synchronize import Event as SyncEvent
 from multiprocessing.sharedctypes import Synchronized
 from queue import Empty
 from rapidq.registry import TaskRegistry
+from rapidq.utils import import_module
 
 from .state import WorkerState
-
-
-def import_module(module_name):
-    current_path = os.getcwd()
-    if current_path not in sys.path:
-        sys.path.append(current_path)
-    _module = importlib.import_module(module_name)
-    return _module
 
 
 class Worker:
