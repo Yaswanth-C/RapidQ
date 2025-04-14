@@ -1,5 +1,6 @@
 import json
 import uuid
+import pickle
 
 
 class Message:
@@ -33,6 +34,13 @@ class Message:
     def json(self):
         return json.dumps(self.dict())
 
+    def pickle(self):
+        return pickle.dumps(self.dict())
+
     @classmethod
     def from_json(cls, json_str) -> "Message":
         return cls(**json.loads(json_str))
+
+    @classmethod
+    def from_pickle_bytes(cls, pickle_bytes) -> "Message":
+        return cls(**pickle.loads(pickle_bytes))
