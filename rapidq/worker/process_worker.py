@@ -128,7 +128,7 @@ class Worker:
         return_code = None
         self.logger(f"worker {self.name} started with pid: {self.worker_pid}")
 
-        # Run the loop until this event is set by master.
+        # Run the loop until this event is set by master or the worker itself.
         while not self.shutdown_event.is_set():
             try:
                 task = self.task_queue.get(block=False)
