@@ -38,6 +38,10 @@ class BackGroundTask:
 
 
 def background_task(name: str = None):
+    """
+    Decorator for callables to be registered as task.
+    """
+
     def decorator(func):
         if not name:
             raise RuntimeError(
