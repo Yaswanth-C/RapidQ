@@ -3,7 +3,7 @@ import os
 import sys
 from multiprocessing import cpu_count
 from rapidq.master import main_process
-from rapidq.broker import get_broker_class
+from rapidq.broker import get_broker
 from rapidq.utils import import_module
 
 CPU_COUNT = min(4, cpu_count())
@@ -62,8 +62,7 @@ def main():
         import_module(args.module)
 
     if args.flush:
-        broker_class = get_broker_class()
-        broker = broker_class()
+        broker = get_broker()
         broker.flush()
         print("Tasks flushed.")
         sys.exit(0)

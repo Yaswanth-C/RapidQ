@@ -2,6 +2,12 @@ from rapidq.message import Message
 
 
 class Broker:
+
+    def is_alive(self):
+        """
+        Test if broker is alive.
+        """
+
     def enqueue_message(self, message: Message):
         """
         Adds a message into the broker client.

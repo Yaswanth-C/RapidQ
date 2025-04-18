@@ -1,7 +1,7 @@
 from functools import wraps
 from typing import Callable
 
-from rapidq.broker import get_broker_class, Broker
+from rapidq.broker import get_broker, Broker
 from rapidq.message import Message
 from rapidq.registry import TaskRegistry
 
@@ -46,8 +46,7 @@ def background_task(name: str = None):
 
         @wraps(func)
         def wrapped_func(*args, **kwargs):
-            broker_class = get_broker_class()
-            broker = broker_class()
+            broker = get_broker()
             return BackGroundTask(
                 func=func,
                 args=args,

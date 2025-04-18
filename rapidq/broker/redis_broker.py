@@ -12,6 +12,7 @@ class RedisBroker(Broker):
 
     MESSAGE_PREFIX = "rapidq.message|"
     TASK_KEY = "rapidq.queued_tasks"
+    DEFAULT_URL = "redis://localhost:6379/0"
 
     def __init__(self, connection_params: dict = None, serialization: str = None):
         if not connection_params:
@@ -23,9 +24,16 @@ class RedisBroker(Broker):
         self.serialization = serialization
 
         connection_params.setdefault(
-            "url", os.environ.get("RAPIDQ_BROKER_URL", "redis://localhost:6379")
+            "url", os.environ.get("RAPIDQ_BROKER_URL", self.DEFAULT_URL)
         )
         self.client = redis.Redis.from_url(**connection_params)
+
+    def is_alive(self):
+        try:
+            self.client.ping()
+            return True
+        except redis.ConnectionError:
+            return False
 
     def generate_message_key(self, message_id: str):
         return f"{self.MESSAGE_PREFIX}{message_id}"
@@ -51,7 +59,6 @@ class RedisBroker(Broker):
     def dequeue_message(self, message_id: str):
         key = self.generate_message_key(message_id)
         message = self.fetch_message(message_id)
-        print(f"deleting {key}")
         self.client.delete(key)
         self.client.srem(self.TASK_KEY, message_id)
         return message
@@ -62,7 +69,3 @@ class RedisBroker(Broker):
         for key in self.client.scan_iter(match=pattern):
             pipe.delete(key)
         pipe.execute()
-
-
-def get_broker_class() -> Type[Broker]:
-    return RedisBroker

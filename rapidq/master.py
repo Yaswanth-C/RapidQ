@@ -3,7 +3,7 @@ import sys
 from typing import Dict
 from multiprocessing import Process, Queue, Event, Value, Manager
 
-from rapidq.broker import get_broker_class
+from rapidq.broker import get_broker
 from rapidq.worker.process_worker import Worker
 from rapidq.worker.state import WorkerState
 
@@ -18,8 +18,7 @@ class MasterProcess:
         self.process_counter = Value("i", 0)
         self.workers: Dict[str, Worker] = {}
 
-        broker_class = get_broker_class()
-        self.broker = broker_class()
+        self.broker = get_broker()
 
         self.module_name = module_name
 
@@ -107,6 +106,11 @@ class MasterProcess:
 
 def main_process(workers: int, module_name: str):
     master = MasterProcess(workers=workers, module_name=module_name)
+    if not master.broker.is_alive():
+        master.logger("Error: unable to access broker, shutting down.")
+        master.shutdown()
+        sys.exit(1)
+
     master.create_workers()
     master.start_workers()
 
