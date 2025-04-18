@@ -55,7 +55,7 @@ class Worker:
         """
         For logging messages.
         """
-        print(f"{self.name} : {message}")
+        print(f"{self.name} [PID: {self.worker_pid}]: {message}")
 
     def start(self):
         """
@@ -63,10 +63,11 @@ class Worker:
         """
         if self.module_name:
             import_module(self.module_name)
+
         self.worker_pid = os.getpid()
         self.update_state(WorkerState.BOOTING)
 
-        self.logger(f"starting with PID - {self.worker_pid}")
+        self.logger(f"starting with PID: {self.worker_pid}")
         # increment the worker counter
         self.counter.value += 1
         return self.run()
@@ -101,14 +102,20 @@ class Worker:
         Processes the given task.
         This method processes the task given
         """
-        # TODO: handle exceptions also
         self.update_state(WorkerState.BUSY)
         task_callable = TaskRegistry.fetch(task.task_name)
         if not task_callable:
             self.logger(f"Got unregistered task `{task.task_name}`")
             return 1
 
-        task_result = task_callable(*task.args, **task.kwargs)
+        try:
+            task_result = task_callable(*task.args, **task.kwargs)
+        except Exception as error:
+            # TODO: change logger
+            self.logger(str(error))
+            self.logger(f"[{task.message_id}]: Error.")
+        else:
+            self.logger(f"[{task.message_id}]: Finished.")
         return 0
 
     def run(self):

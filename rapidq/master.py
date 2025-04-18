@@ -1,5 +1,6 @@
 import time
 import sys
+import os
 from typing import Dict
 from multiprocessing import Process, Queue, Event, Value, Manager
 
@@ -17,6 +18,7 @@ class MasterProcess:
         self.no_of_workers = workers
         self.process_counter = Value("i", 0)
         self.workers: Dict[str, Worker] = {}
+        self.pid = os.getpid()
 
         self.broker = get_broker()
 
@@ -32,7 +34,7 @@ class MasterProcess:
             _worker.process.start()
 
     def logger(self, message: str):
-        print(f"Master-process: {message}")
+        print(f"Master: [PID: {self.pid}] {message}")
 
     def _create_worker(self, worker_num: int):
         """
@@ -40,7 +42,7 @@ class MasterProcess:
         """
         worker_queue = Queue()
         shutdown_event = Event()
-        process_name = f"Worker Process-{worker_num}"
+        process_name = f"Worker-{worker_num}"
         worker = Worker(
             queue=worker_queue,
             name=process_name,
@@ -98,7 +100,7 @@ class MasterProcess:
             )
             worker.stop()
             if worker.process.is_alive():
-                worker.logger(f"alive, killing. PID: {worker.process.pid}")
+                self.logger(f"worker alive, killing. PID: {worker.process.pid}")
                 worker.process.terminate()
             worker.join(1)
         self.logger("shutting down master")
@@ -134,6 +136,7 @@ def main_process(workers: int, module_name: str):
     master.boot_complete = True
 
     while True:
+        # loop through idle workers and assign tasks.
         try:
             for worker_name, _state in master.idle_workers:
                 pending_message_ids = master.queued_tasks
@@ -154,6 +157,7 @@ def main_process(workers: int, module_name: str):
                     raise error
 
                 # assign the task to the idle worker
+                master.logger(f"assigning [{message_id}] to {worker.name}")
                 worker.task_queue.put(message)
             time.sleep(0.2)  # 200ms
         except (KeyboardInterrupt, Exception) as error:
