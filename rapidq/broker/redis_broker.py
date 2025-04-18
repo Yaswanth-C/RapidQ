@@ -1,5 +1,4 @@
 import os
-from typing import Type
 import redis
 from rapidq.message import Message
 from .base import Broker
