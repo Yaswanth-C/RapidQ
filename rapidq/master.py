@@ -94,6 +94,7 @@ class MasterProcess:
         )
 
     def shutdown(self):
+        self.logger("Preparing to shutdown ...")
         for worker in self.workers.values():
             self.logger(
                 f"waiting for {worker.process.name} - PID: {worker.process.pid} to exit!"
