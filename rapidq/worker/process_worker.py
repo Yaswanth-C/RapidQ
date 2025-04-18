@@ -109,6 +109,7 @@ class Worker:
             return 1
 
         try:
+            self.logger(f"[{task.message_id}]: Received.")
             task_result = task_callable(*task.args, **task.kwargs)
         except Exception as error:
             # TODO: change logger
