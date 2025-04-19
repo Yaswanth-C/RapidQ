@@ -111,14 +111,14 @@ class Worker:
             return 1
 
         try:
-            self.logger(f"[{task.message_id}]: Received.")
+            self.logger(f"[{task.message_id}] [{task.task_name}]: Received.")
             task_result = task_callable(*task.args, **task.kwargs)
         except Exception as error:
             # TODO: change logger
             self.logger(str(error))
-            self.logger(f"[{task.message_id}]: Error.")
+            self.logger(f"[{task.message_id}] [{task.task_name}]: Error.")
         else:
-            self.logger(f"[{task.message_id}]: Finished.")
+            self.logger(f"[{task.message_id}] [{task.task_name}]: Finished.")
         return 0
 
     def run(self):

@@ -157,7 +157,9 @@ def main_process(workers: int, module_name: str):
                     raise error
 
                 # assign the task to the idle worker
-                master.logger(f"assigning [{message_id}] to {worker.name}")
+                master.logger(
+                    f"assigning [{message_id}] [{message.task_name}] to {worker.name}"
+                )
                 worker.task_queue.put(message)
             time.sleep(0.2)  # 200ms
         except (KeyboardInterrupt, Exception) as error:
