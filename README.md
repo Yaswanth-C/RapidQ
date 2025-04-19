@@ -12,6 +12,11 @@ Only Redis broker is currently available, and there is no result backend(could b
 
 Inspired by `dramatiq` and `celery`, but :feather:lightweight, :rocket:faster and easy to use for small projects.<br>
 
+### Installation
+```
+pip install rapidq
+```
+
 #### It has: <br>
    - Only Redis as broker, with json and pickle serialization options.
    - Process based workers, and is faster :rocket:.
