@@ -99,26 +99,25 @@ class Worker:
             self.shutdown_event.set()
             self.flush_tasks()
 
-    def process_task(self, task: Message):
+    def process_task(self, message: Message):
         """
-        Processes the given task.
-        This method processes the task given
+        Process the given message.
         """
         self.update_state(WorkerState.BUSY)
-        task_callable = TaskRegistry.fetch(task.task_name)
+        task_callable = TaskRegistry.fetch(message.task_name)
         if not task_callable:
-            self.logger(f"Got unregistered task `{task.task_name}`")
+            self.logger(f"Got unregistered task `{message.task_name}`")
             return 1
 
         try:
-            self.logger(f"[{task.message_id}] [{task.task_name}]: Received.")
-            task_result = task_callable(*task.args, **task.kwargs)
+            self.logger(f"[{message.message_id}] [{message.task_name}]: Received.")
+            task_result = task_callable(*message.args, **message.kwargs)
         except Exception as error:
             # TODO: change logger
             self.logger(str(error))
-            self.logger(f"[{task.message_id}] [{task.task_name}]: Error.")
+            self.logger(f"[{message.message_id}] [{message.task_name}]: Error.")
         else:
-            self.logger(f"[{task.message_id}] [{task.task_name}]: Finished.")
+            self.logger(f"[{message.message_id}] [{message.task_name}]: Finished.")
         return 0
 
     def run(self):
