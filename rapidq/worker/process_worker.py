@@ -70,7 +70,8 @@ class Worker:
         self.pid = os.getpid()
         self.logger(f"starting with PID: {self.pid}")
         # increment the worker counter
-        self.counter.value += 1
+        with self.counter.get_lock():
+            self.counter.value += 1
         return self.run()
 
     def flush_tasks(self):
