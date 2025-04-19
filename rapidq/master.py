@@ -3,8 +3,9 @@ import sys
 import os
 from typing import Dict
 from multiprocessing import Process, Queue, Event, Value, Manager
+from multiprocessing.managers import SyncManager, DictProxy
 
-from rapidq.broker import get_broker
+from rapidq.broker import get_broker, Broker
 from rapidq.worker.process_worker import Worker
 from rapidq.worker.state import WorkerState
 
@@ -18,16 +19,14 @@ class MasterProcess:
         self.no_of_workers = workers
         self.process_counter = Value("i", 0)
         self.workers: Dict[str, Worker] = {}
-        self.pid = os.getpid()
+        self.pid: int = os.getpid()
+        self.broker: Broker = get_broker()
+        self.module_name: str = module_name
 
-        self.broker = get_broker()
-
-        self.module_name = module_name
-
-        manager = Manager()
+        manager: SyncManager = Manager()
         # maps worker_name -> state
-        self.worker_state = manager.dict()
-        self.boot_complete = False
+        self.worker_state: DictProxy[str, str] = manager.dict()
+        self.boot_complete: bool = False
 
     def start_workers(self):
         for _worker in self.workers.values():

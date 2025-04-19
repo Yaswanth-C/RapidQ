@@ -5,6 +5,8 @@ from multiprocessing import Process, Queue
 from multiprocessing.synchronize import Event as SyncEvent
 from multiprocessing.sharedctypes import Synchronized
 from queue import Empty
+
+from rapidq.message import Message
 from rapidq.registry import TaskRegistry
 from rapidq.utils import import_module
 
@@ -31,9 +33,11 @@ class Worker:
         self.name: str = name
         self.task_queue: Queue = queue
         self.shutdown_event: SyncEvent = shutdown_event
-        self.counter = process_counter
-        self.worker_state = worker_state
-        self.module_name = module_name
+        self.counter: Synchronized = process_counter
+        self.worker_state: dict = worker_state
+        # TODO: module_name has to be specified some other way,
+        # or has to be removed completely
+        self.module_name: str = module_name
 
     def __call__(self):
         """
@@ -95,7 +99,7 @@ class Worker:
             self.shutdown_event.set()
             self.flush_tasks()
 
-    def process_task(self, task):
+    def process_task(self, task: Message):
         """
         Processes the given task.
         This method processes the task given
