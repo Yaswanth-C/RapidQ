@@ -6,27 +6,55 @@ from multiprocessing import Process, Queue, Event, Value, Manager
 from multiprocessing.managers import SyncManager, DictProxy
 
 from rapidq.broker import get_broker, Broker
+from rapidq.decorators import background_task as task_decorator
+from rapidq.utils import import_module
 from rapidq.worker.process_worker import Worker
 from rapidq.worker.state import WorkerState, DEFAULT_IDLE_TIME
 
 
-class MasterProcess:
+class RapidQ:
     """
-    Handles the workers and allocates tasks to them.
+    Master application.
+    Handles the workers, broker and allocates tasks to workers
+    based on their availability.
     """
 
-    def __init__(self, workers: int, module_name: str):
+    def __init__(
+        self, workers: int = None, module_name: str = None, init_as_app: bool = False
+    ):
         self.no_of_workers = workers
+        self.module_name: str = module_name
+        self.boot_complete: bool = False
+        if init_as_app:
+            if not all([self.no_of_workers, self.module_name]):
+                raise RuntimeError("Arguments are improper unable to start RapidQ.")
+            self.initialize()
+
+    def initialize(self):
         self.process_counter = Value("i", 0)
         self.workers: Dict[str, Worker] = {}
         self.pid: int = os.getpid()
         self.broker: Broker = get_broker()
-        self.module_name: str = module_name
 
         manager: SyncManager = Manager()
         # maps worker_name -> state
         self.worker_state: DictProxy[str, str] = manager.dict()
-        self.boot_complete: bool = False
+
+    def config_from_module(self, module_path: str):
+        module = import_module(module_path)
+
+        configurable_keys = (
+            "RAPIDQ_BROKER_SERIALIZER",
+            "RAPIDQ_BROKER_URL",
+        )
+        for key in configurable_keys:
+            if not getattr(module, key, None):
+                continue
+            os.environ[key] = str(getattr(module, key))
+
+    def background_task(self, name: str):
+        """Decorator for callables to be registered as task."""
+        return task_decorator(name)
 
     def start_workers(self):
         for _worker in self.workers.values():
@@ -107,7 +135,7 @@ class MasterProcess:
 
 
 def main_process(workers: int, module_name: str):
-    master = MasterProcess(workers=workers, module_name=module_name)
+    master = RapidQ(workers=workers, module_name=module_name, init_as_app=True)
     if not master.broker.is_alive():
         master.logger("Error: unable to access broker, shutting down.")
         master.shutdown()
@@ -121,8 +149,8 @@ def main_process(workers: int, module_name: str):
             # wait for all the workers to boot up.
             if master.process_counter.value == workers:
                 break
-            master.logger("waiting for workers to boot up")
-            time.sleep(1)
+            master.logger("waiting for workers to boot up...")
+            time.sleep(2)
 
             # check for any abnormal shutdown event.
             if list(master.workers.values())[0].shutdown_event.is_set():
