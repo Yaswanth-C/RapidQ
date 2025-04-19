@@ -1,11 +1,12 @@
-import rapidq.startup
-from rapidq.decorators import background_task
+from rapidq import RapidQ
 
-# define the custom configuration.
-rapidq.startup.read_config_from_module("example.config_example")
+app = RapidQ()
+
+# define the custom configuration. Below line can be omitted if configuration is not needed.
+app.config_from_module("example.config_example")
 
 
-@background_task(name="simple-task")
+@app.background_task(name="simple-task")
 def test_func(msg):
     print("simple task is running")
     print(msg)

@@ -1,7 +1,9 @@
-from rapidq.decorators import background_task
+from rapidq import RapidQ
+
+app = RapidQ()
 
 
-@background_task(name="simple-task")
+@app.background_task(name="simple-task")
 def test_func(msg):
     print("simple task is running")
     print(msg)
