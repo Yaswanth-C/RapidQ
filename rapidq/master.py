@@ -25,7 +25,7 @@ class MasterProcess:
         self.module_name = module_name
 
         manager = Manager()
-        # maps worker_pid -> state
+        # maps worker_name -> state
         self.worker_state = manager.dict()
         self.boot_complete = False
 
