@@ -7,7 +7,7 @@ from multiprocessing.managers import SyncManager, DictProxy
 
 from rapidq.broker import get_broker, Broker
 from rapidq.worker.process_worker import Worker
-from rapidq.worker.state import WorkerState
+from rapidq.worker.state import WorkerState, DEFAULT_IDLE_TIME
 
 
 class MasterProcess:
@@ -161,7 +161,7 @@ def main_process(workers: int, module_name: str):
                     f"assigning [{message_id}] [{message.task_name}] to {worker.name}"
                 )
                 worker.task_queue.put(message)
-            time.sleep(0.2)  # 200ms
+            time.sleep(DEFAULT_IDLE_TIME)
         except (KeyboardInterrupt, Exception) as error:
             print(error)
             master.shutdown()

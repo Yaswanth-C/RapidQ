@@ -10,7 +10,7 @@ from rapidq.message import Message
 from rapidq.registry import TaskRegistry
 from rapidq.utils import import_module
 
-from .state import WorkerState
+from .state import WorkerState, DEFAULT_IDLE_TIME
 
 
 class Worker:
@@ -138,7 +138,7 @@ class Worker:
 
             try:
                 if not task:
-                    time.sleep(1)
+                    time.sleep(DEFAULT_IDLE_TIME)
             except KeyboardInterrupt:
                 self.stop()
                 self.update_state(WorkerState.SHUTDOWN)
