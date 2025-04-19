@@ -5,8 +5,8 @@
 <img src="https://komarev.com/ghpvc/?username=rapidq&style=pixel">
 
 #### For those who want a bare minimum task queue, Just run and discard, no headaches.
-#### Only ~700 lines of code :pinching_hand:
-A lightweight:feather: and fast:rocket: background task processing library for Python, developed with simplicity and understandability in mind.<br>
+#### Only :pinching_hand: ~700 lines of code
+A lightweight :feather: and fast :rocket: background task processing library for Python, developed with simplicity and understandability in mind.<br>
 There is nothing fancy, no gimmick, RapidQ is a simple and easy to use package - works on any OS.<br>
 Only Redis broker is currently available, and there is no result backend(could be implemented later).<br>
 
@@ -34,13 +34,13 @@ broker communications and workers. Workers do not query the broker directly. Ins
 Workers just run forever and check their task queues periodically. Master queries the broker only when there are idle workers available.
 
 ----------
-###_This project is under development, so expect breaking changes when you upgrade_
+### _This project is under development, so expect breaking changes when you upgrade_
 
 ----------
 ### A working example
 
 The below code is available in `example\minimal.py`
-```
+```python
 # my_task.py
 from rapidq import RapidQ
 
@@ -61,11 +61,11 @@ Run the rapidq worker first. <br>`rapidq my_task` <br>
 
 Then on another terminal, run the my_task.py <br> `python my_task.py`
 
-#### Customizing broker properties
+### Customizing broker properties
 If you wish to customize the serialization to use pickle or want to change the broker url?
 It can be customized with a small configuration, using a simple python file.<br>
 check similar example in `example\minimal_custom.py` and `example\config_example.py`
-```
+```python
 # my_custom_task.py
 from rapidq import RapidQ
 
