@@ -26,7 +26,7 @@ class Worker:
         module_name: str,
     ):
         self.process: Process = None
-        self.worker_pid: int = None
+        self.pid: int = None
 
         self.name: str = name
         self.task_queue: Queue = queue
@@ -53,7 +53,7 @@ class Worker:
         """
         For logging messages.
         """
-        print(f"{self.name} [PID: {self.worker_pid}]: {message}")
+        print(f"{self.name} [PID: {self.pid}]: {message}")
 
     def start(self):
         """
@@ -62,10 +62,10 @@ class Worker:
         if self.module_name:
             import_module(self.module_name)
 
-        self.worker_pid = os.getpid()
+        self.pid = os.getpid()
         self.update_state(WorkerState.BOOTING)
 
-        self.logger(f"starting with PID: {self.worker_pid}")
+        self.logger(f"starting with PID: {self.pid}")
         # increment the worker counter
         self.counter.value += 1
         return self.run()
@@ -122,7 +122,7 @@ class Worker:
         Implements a worker's execution logic.
         """
         return_code = None
-        self.logger(f"worker {self.name} started with pid: {self.worker_pid}")
+        self.logger(f"worker {self.name} started with pid: {self.pid}")
 
         # Run the loop until this event is set by master or the worker itself.
         while not self.shutdown_event.is_set():
