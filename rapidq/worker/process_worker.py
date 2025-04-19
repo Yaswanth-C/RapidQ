@@ -63,12 +63,11 @@ class Worker:
         """
         Start the worker.
         """
+        self.update_state(WorkerState.BOOTING)
         if self.module_name:
             import_module(self.module_name)
 
         self.pid = os.getpid()
-        self.update_state(WorkerState.BOOTING)
-
         self.logger(f"starting with PID: {self.pid}")
         # increment the worker counter
         self.counter.value += 1
