@@ -123,15 +123,25 @@ class RapidQ:
     def shutdown(self):
         self.logger("Preparing to shutdown ...")
         for worker in self.workers.values():
-            self.logger(
-                f"waiting for {worker.process.name} - PID: {worker.process.pid} to exit!"
-            )
-            worker.stop()
-            if worker.process.is_alive():
-                self.logger(f"worker alive, killing. PID: {worker.process.pid}")
-                worker.process.terminate()
-            worker.join(1)
-        self.logger("shutting down master")
+            try:
+                self.logger(
+                    f"Waiting for {worker.process.name} - PID: {worker.process.pid} to exit!"
+                )
+                worker.stop()
+                worker.join(timeout=5)
+
+                if worker.process.is_alive():
+                    self.logger(
+                        f"Worker still alive, forcefully killing. PID: {worker.process.pid}"
+                    )
+                    worker.process.terminate()
+                    worker.join(timeout=1)
+            except Exception as error:
+                self.logger(
+                    f"Error while shutting down worker {worker.process.name}: {error}"
+                )
+
+        self.logger("Shutting down master")
 
 
 def main_process(workers: int, module_name: str):
