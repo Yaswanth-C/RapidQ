@@ -42,10 +42,10 @@ class RedisBroker(Broker):
         _data = message.pickle() if self.serialization == "pickle" else message.json()
         self.client.set(key, _data)
         # This below Redis set will be monitored by master.
-        self.client.sadd(self.TASK_KEY, message.message_id)
+        self.client.rpush(self.TASK_KEY, message.message_id)
 
     def fetch_queued(self):
-        return list(self.client.smembers(self.TASK_KEY))
+        return list(self.client.lrange(self.TASK_KEY, 0, -1))
 
     def fetch_message(self, message_id: str) -> Message:
         key = self.generate_message_key(message_id)
@@ -59,7 +59,7 @@ class RedisBroker(Broker):
         key = self.generate_message_key(message_id)
         message = self.fetch_message(message_id)
         self.client.delete(key)
-        self.client.srem(self.TASK_KEY, message_id)
+        self.client.lrem(self.TASK_KEY, 0, message_id)
         return message
 
     def flush(self):
