@@ -2,8 +2,7 @@ import time
 import sys
 import os
 from typing import Dict
-from multiprocessing import Process, Queue, Event, Value, Manager
-from multiprocessing.managers import SyncManager, DictProxy
+from multiprocessing import Process, Queue, Event, Value
 
 from rapidq.broker import get_broker, Broker
 from rapidq.decorators import background_task as task_decorator
@@ -36,10 +35,6 @@ class RapidQ:
         self.pid: int = os.getpid()
         self.broker: Broker = get_broker()
 
-        manager: SyncManager = Manager()
-        # maps worker_name -> state
-        self.worker_state: DictProxy[str, str] = manager.dict()
-
     def config_from_module(self, module_path: str):
         module = import_module(module_path)
 
@@ -69,17 +64,19 @@ class RapidQ:
         """
         worker_queue = Queue()
         shutdown_event = Event()
+        worker_state = Value("i", 0)
         process_name = f"Worker-{worker_num}"
         worker = Worker(
             queue=worker_queue,
             name=process_name,
             shutdown_event=shutdown_event,
             process_counter=self.process_counter,
-            worker_state=self.worker_state,
+            state=worker_state,
             module_name=self.module_name,
         )
 
         # NOTE: I am well aware of the state duplication when the process is started
+        # That's why most of the instance variables in Worker use shared memory resources.
         process = Process(
             target=worker,
             name=process_name,
@@ -115,9 +112,9 @@ class RapidQ:
         if not self.boot_complete:
             return []
 
-        # [(worker_name, state), ...]
         return filter(
-            lambda item: item[1] == WorkerState.IDLE, self.worker_state.items()
+            lambda _worker: _worker.state.value == WorkerState.IDLE,
+            self.workers.values(),
         )
 
     def shutdown(self):
@@ -176,12 +173,11 @@ def main_process(workers: int, module_name: str):
     while True:
         # loop through idle workers and assign tasks.
         try:
-            for worker_name, _state in master.idle_workers:
+            for worker in master.idle_workers:
                 pending_message_ids = master.queued_tasks
                 if not pending_message_ids:
                     break
 
-                worker = master.workers[worker_name]
                 try:
                     message_id = pending_message_ids.pop(0).decode()
                     message = master.broker.dequeue_message(message_id=message_id)

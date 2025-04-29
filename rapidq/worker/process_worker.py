@@ -1,7 +1,7 @@
 import os
 import time
 
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, Value
 from multiprocessing.synchronize import Event as SyncEvent
 from multiprocessing.sharedctypes import Synchronized
 from queue import Empty
@@ -24,7 +24,7 @@ class Worker:
         name: str,
         shutdown_event: SyncEvent,
         process_counter: Synchronized,
-        worker_state: dict,
+        state: Synchronized,
         module_name: str,
     ):
         self.process: Process = None
@@ -34,7 +34,7 @@ class Worker:
         self.task_queue: Queue = queue
         self.shutdown_event: SyncEvent = shutdown_event
         self.counter: Synchronized = process_counter
-        self.worker_state: dict = worker_state
+        self.state: Synchronized = state
         # TODO: module_name has to be specified some other way,
         # or has to be removed completely
         self.module_name: str = module_name
@@ -50,8 +50,10 @@ class Worker:
             self.logger("Startup failed!")
             self.logger(error)
 
-    def update_state(self, state: str):
-        self.worker_state[self.name] = state
+    def update_state(self, state: int):
+        """Updates a worker state"""
+        with self.state.get_lock():
+            self.state.value = state
 
     def logger(self, message: str):
         """
