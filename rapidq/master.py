@@ -59,9 +59,7 @@ class RapidQ:
         print(f"Master: [PID: {self.pid}] {message}")
 
     def _create_worker(self, worker_num: int):
-        """
-        Create and return a single worker process.
-        """
+        """Create and return a single Worker instance."""
         worker_queue = Queue()
         shutdown_event = Event()
         worker_state = Value("i", 0)
@@ -86,9 +84,7 @@ class RapidQ:
         return worker
 
     def create_workers(self):
-        """
-        Creates the worker processes.
-        """
+        """Creates the worker processes."""
         for worker_num in range(self.no_of_workers):
             worker = self._create_worker(worker_num)
             self.add_worker(worker=worker)
@@ -99,16 +95,12 @@ class RapidQ:
 
     @property
     def queued_tasks(self):
-        """
-        Returns the queued messages
-        """
+        """Returns the queued messages"""
         return self.broker.fetch_queued()
 
     @property
     def idle_workers(self):
-        """
-        Returns the workers in idle state.
-        """
+        """Returns the workers in idle state."""
         if not self.boot_complete:
             return []
 

@@ -4,19 +4,13 @@ from rapidq.message import Message
 class Broker:
 
     def is_alive(self):
-        """
-        Test if broker is alive.
-        """
+        """Test if broker is alive."""
 
     def enqueue_message(self, message: Message):
-        """
-        Adds a message into the broker client.
-        """
+        """Adds a message into the broker client."""
 
     def fetch_queued(self) -> list:
-        """
-        Return the list of pending queued tasks.
-        """
+        """Return the list of pending queued tasks."""
 
     def fetch_message(self, message_id: str) -> Message:
         """
@@ -30,6 +24,4 @@ class Broker:
         """
 
     def flush(self) -> None:
-        """
-        Flush the broker.
-        """
+        """Flush the broker."""

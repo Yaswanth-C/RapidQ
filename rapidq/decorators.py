@@ -24,9 +24,7 @@ class BackGroundTask:
         return self.func(*args, **kwargs)
 
     def in_background(self, *args, **kwargs):
-        """
-        queue the task for processing later.
-        """
+        """Queue the task for processing later."""
         message = Message(
             task_name=self.name,
             queue_name=DEFAULT_QUEUE_NAME,

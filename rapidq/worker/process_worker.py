@@ -40,9 +40,7 @@ class Worker:
         self.module_name: str = module_name
 
     def __call__(self):
-        """
-        Start the worker
-        """
+        """Start the worker"""
         try:
             self.start()
         except Exception as error:
@@ -56,15 +54,11 @@ class Worker:
             self.state.value = state
 
     def logger(self, message: str):
-        """
-        For logging messages.
-        """
+        """For logging messages."""
         print(f"{self.name} [PID: {self.pid}]: {message}")
 
     def start(self):
-        """
-        Start the worker.
-        """
+        """Start the worker."""
         self.update_state(WorkerState.BOOTING)
         if self.module_name:
             import_module(self.module_name)
@@ -87,9 +81,7 @@ class Worker:
                 pass
 
     def join(self, timeout: int = None):
-        """
-        Wait for the worker process to exit.
-        """
+        """Wait for the worker process to exit."""
         self.process.join(timeout=timeout)
 
     def stop(self):
@@ -102,9 +94,7 @@ class Worker:
             self.flush_tasks()
 
     def process_task(self, message: Message):
-        """
-        Process the given message.
-        """
+        """Process the given message."""
         self.update_state(WorkerState.BUSY)
         task_callable = TaskRegistry.fetch(message.task_name)
         if not task_callable:
@@ -123,9 +113,7 @@ class Worker:
         return 0
 
     def run(self):
-        """
-        Implements a worker's execution logic.
-        """
+        """Implements a worker's execution logic."""
         return_code = None
         self.logger(f"worker {self.name} started with pid: {self.pid}")
 
