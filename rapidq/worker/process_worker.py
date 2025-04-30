@@ -1,16 +1,16 @@
-import importlib
 import os
-import sys
 import time
 
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, Value
 from multiprocessing.synchronize import Event as SyncEvent
 from multiprocessing.sharedctypes import Synchronized
 from queue import Empty
+
+from rapidq.message import Message
 from rapidq.registry import TaskRegistry
 from rapidq.utils import import_module
 
-from .state import WorkerState
+from .state import WorkerState, DEFAULT_IDLE_TIME
 
 
 class Worker:
@@ -24,23 +24,23 @@ class Worker:
         name: str,
         shutdown_event: SyncEvent,
         process_counter: Synchronized,
-        worker_state: dict,
+        state: Synchronized,
         module_name: str,
     ):
         self.process: Process = None
-        self.worker_pid: int = None
+        self.pid: int = None
 
         self.name: str = name
         self.task_queue: Queue = queue
         self.shutdown_event: SyncEvent = shutdown_event
-        self.counter = process_counter
-        self.worker_state = worker_state
-        self.module_name = module_name
+        self.counter: Synchronized = process_counter
+        self.state: Synchronized = state
+        # TODO: module_name has to be specified some other way,
+        # or has to be removed completely
+        self.module_name: str = module_name
 
     def __call__(self):
-        """
-        Start the worker
-        """
+        """Start the worker"""
         try:
             self.start()
         except Exception as error:
@@ -48,27 +48,26 @@ class Worker:
             self.logger("Startup failed!")
             self.logger(error)
 
-    def update_state(self, state: str):
-        self.worker_state[self.name] = state
+    def update_state(self, state: int):
+        """Updates a worker state"""
+        with self.state.get_lock():
+            self.state.value = state
 
     def logger(self, message: str):
-        """
-        For logging messages.
-        """
-        print(f"{self.name} : {message}")
+        """For logging messages."""
+        print(f"{self.name} [PID: {self.pid}]: {message}")
 
     def start(self):
-        """
-        Start the worker.
-        """
+        """Start the worker."""
+        self.update_state(WorkerState.BOOTING)
         if self.module_name:
             import_module(self.module_name)
-        self.worker_pid = os.getpid()
-        self.update_state(WorkerState.BOOTING)
 
-        self.logger(f"starting with PID - {self.worker_pid}")
+        self.pid = os.getpid()
+        self.logger(f"starting with PID: {self.pid}")
         # increment the worker counter
-        self.counter.value += 1
+        with self.counter.get_lock():
+            self.counter.value += 1
         return self.run()
 
     def flush_tasks(self):
@@ -82,9 +81,7 @@ class Worker:
                 pass
 
     def join(self, timeout: int = None):
-        """
-        Wait for the worker process to exit.
-        """
+        """Wait for the worker process to exit."""
         self.process.join(timeout=timeout)
 
     def stop(self):
@@ -96,27 +93,29 @@ class Worker:
             self.shutdown_event.set()
             self.flush_tasks()
 
-    def process_task(self, task):
-        """
-        Processes the given task.
-        This method processes the task given
-        """
-        # TODO: handle exceptions also
+    def process_task(self, message: Message):
+        """Process the given message."""
         self.update_state(WorkerState.BUSY)
-        task_callable = TaskRegistry.fetch(task.task_name)
+        task_callable = TaskRegistry.fetch(message.task_name)
         if not task_callable:
-            self.logger(f"Got unregistered task `{task.task_name}`")
+            self.logger(f"Got unregistered task `{message.task_name}`")
             return 1
 
-        task_result = task_callable(*task.args, **task.kwargs)
+        try:
+            self.logger(f"[{message.message_id}] [{message.task_name}]: Received.")
+            task_result = task_callable(*message.args, **message.kwargs)
+        except Exception as error:
+            # TODO: change logger
+            self.logger(str(error))
+            self.logger(f"[{message.message_id}] [{message.task_name}]: Error.")
+        else:
+            self.logger(f"[{message.message_id}] [{message.task_name}]: Finished.")
         return 0
 
     def run(self):
-        """
-        Implements a worker's execution logic.
-        """
+        """Implements a worker's execution logic."""
         return_code = None
-        self.logger(f"worker {self.name} started with pid: {self.worker_pid}")
+        self.logger(f"worker {self.name} started with pid: {self.pid}")
 
         # Run the loop until this event is set by master or the worker itself.
         while not self.shutdown_event.is_set():
@@ -129,7 +128,7 @@ class Worker:
 
             try:
                 if not task:
-                    time.sleep(1)
+                    time.sleep(DEFAULT_IDLE_TIME)
             except KeyboardInterrupt:
                 self.stop()
                 self.update_state(WorkerState.SHUTDOWN)

@@ -1,17 +1,34 @@
 [project]
 name = "RapidQ"
 version = "0.1.0"
-description = "A lightweight and fast background task processing library for Python, developed with simplicity and understandability in mind."
+description = "A lightweight and fast background task processing library for Python, developed with simplicity in mind."
 authors = [
     {name = "Yaswanth C",email = "yaswanthc.dev@gmail.com"}
 ]
-license = {text = "BSD 3-Clause License"}
+license = "BSD-3-Clause"
 readme = "README.md"
 requires-python = ">=3.10"
-dynamic = ["dependencies"]
+keywords = ["multiprocessing", "task-queue", "task-manager"]
+dynamic = ["dependencies", "classifiers"]
+
+[project.urls]
+homepage = "https://github.com/Yaswanth-C/RapidQ"
+repository = "https://github.com/Yaswanth-C/RapidQ"
 
 [tool.poetry]
 requires-poetry = "=2.1.2"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    "Topic :: Software Development :: Object Brokering"
+]
 
 [tool.poetry.dependencies]
 redis = "5.2.1"
@@ -26,3 +43,4 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 rapidq = "rapidq.__main__:main"
+rapidq-flush = "rapidq.__main__:flush_queue"

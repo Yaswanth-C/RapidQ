@@ -1,7 +1,7 @@
 from functools import wraps
 from typing import Callable
 
-from rapidq.broker import get_broker_class, Broker
+from rapidq.broker import get_broker, Broker
 from rapidq.message import Message
 from rapidq.registry import TaskRegistry
 
@@ -24,9 +24,7 @@ class BackGroundTask:
         return self.func(*args, **kwargs)
 
     def in_background(self, *args, **kwargs):
-        """
-        queue the task for processing later.
-        """
+        """Queue the task for processing later."""
         message = Message(
             task_name=self.name,
             queue_name=DEFAULT_QUEUE_NAME,
@@ -37,7 +35,9 @@ class BackGroundTask:
         return message
 
 
-def background_task(name: str = None):
+def background_task(name: str):
+    """Decorator for callables to be registered as task."""
+
     def decorator(func):
         if not name:
             raise RuntimeError(
@@ -46,8 +46,7 @@ def background_task(name: str = None):
 
         @wraps(func)
         def wrapped_func(*args, **kwargs):
-            broker_class = get_broker_class()
-            broker = broker_class()
+            broker = get_broker()
             return BackGroundTask(
                 func=func,
                 args=args,
