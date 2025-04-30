@@ -53,6 +53,7 @@ app = RapidQ()
 
 @app.background_task(name="simple-task")
 def test_func(msg):
+    # of course this could do more than just print.
     print("simple task is running")
     print(msg)
 
