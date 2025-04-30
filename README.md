@@ -1,16 +1,16 @@
 ## RapidQ
 ![License](https://img.shields.io/badge/license-BSD3-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.10_%7c_3.11-blue)
-[![PyPI Version](https://img.shields.io/pypi/v/RapidQ?style=flat-square)](https://pypi.org/project/RapidQ/)
+[![PyPI Version](https://img.shields.io/pypi/v/RapidQ?style=flat-square?cacheSeconds=3600)](https://pypi.org/project/RapidQ/)
 ![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)
 <img src="https://komarev.com/ghpvc/?username=rapidq&style=pixel">
 #### For those who want a bare minimum task queue, Just run and discard, no headaches.
-#### Only :pinching_hand: ~700 lines of code
-A lightweight :feather: and fast :rocket: background task processing library for Python, developed with simplicity in mind.<br>
+#### Only &#x1F90F; ~700 lines of code
+A lightweight &#x1FAB6; and fast &#x1F680; background task processing library for Python, developed with simplicity in mind.<br>
 There is nothing fancy, no gimmick, RapidQ is a simple and easy to use package - works on any OS (yes, it supports windows).<br>
 Only Redis broker is currently available, and there is no result backend(could be implemented later).<br>
 
-Inspired by `celery` and `dramatiq`, but :feather:lightweight, :rocket:faster and easy to use for small projects.<br>
+Inspired by `celery` and `dramatiq`, but &#x1FAB6; lightweight, &#x1F680;faster and easy to use for small projects.<br>
 
 ### Installation
 ```
@@ -19,7 +19,7 @@ pip install rapidq
 
 #### It has: <br>
    - Only Redis as broker, with json and pickle serialization options.
-   - Process based workers, and is faster :rocket:.
+   - Process based workers, and is faster &#x1F680;.
    - No result backend
    - No retry behavior (of course it will be added)
    - No monitoring, as of now.
@@ -29,7 +29,7 @@ pip install rapidq
 
 ----------
 ### Motivation
-Simply put - I just wanted to see if I could do it. :hugs:<br>
+Simply put - I just wanted to see if I could do it. &#x1F917;<br>
 Understanding how packages like `celery` and `dramatiq` works internally was a challenge I faced. I wanted a package that is understandable and simple.<br>
 
 ----------
