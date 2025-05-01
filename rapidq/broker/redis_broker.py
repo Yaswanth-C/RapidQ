@@ -13,7 +13,7 @@ class RedisBroker(Broker):
     TASK_KEY = "rapidq.queued_tasks"
     DEFAULT_URL = "redis://localhost:6379/0"
 
-    def __init__(self, connection_params: dict = None, serialization: str = None):
+    def __init__(self, connection_params: dict = None):
         if not connection_params:
             connection_params = {}
 
