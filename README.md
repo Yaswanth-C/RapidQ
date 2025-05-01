@@ -60,7 +60,9 @@ def test_func(msg):
 
 
 if __name__ == "__main__":
-    test_func.in_background(msg="Hello, I'm running")
+    test_func.in_background(msg="Hello, I'm running in background")
+     # Line below will be printed directly and will not go to worker.
+    test_func(msg="Hello, I'm running in the same process!")
 ```
 Copy paste the above into a python file, say `my_task.py`<br>
 
