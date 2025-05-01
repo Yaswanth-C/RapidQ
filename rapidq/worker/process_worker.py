@@ -103,7 +103,7 @@ class Worker:
 
         try:
             self.logger(f"[{message.message_id}] [{message.task_name}]: Received.")
-            task_result = task_callable(*message.args, **message.kwargs)
+            _task_result = task_callable(*message.args, **message.kwargs)
         except Exception as error:
             # TODO: change logger
             self.logger(str(error))
