@@ -1,6 +1,6 @@
 ## RapidQ
 ![License](https://img.shields.io/badge/license-BSD3-blue.svg)
-![Python](https://img.shields.io/badge/Python-3.10_%7c_3.11-blue)
+![Python](https://img.shields.io/badge/Python-3.10_%7c_3.11_%7c_3.12_%7c_3.13-blue)
 [![PyPI Version](https://img.shields.io/pypi/v/RapidQ?style=flat-square?cacheSeconds=3600)](https://pypi.org/project/RapidQ/)
 ![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)
 <img src="https://komarev.com/ghpvc/?username=rapidq&style=pixel">
