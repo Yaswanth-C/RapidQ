@@ -1,5 +1,6 @@
 import os
 import time
+from typing import Optional
 
 from multiprocessing import Process, Queue, Value
 from multiprocessing.synchronize import Event as SyncEvent
@@ -27,8 +28,8 @@ class Worker:
         state: Synchronized,
         module_name: str,
     ):
-        self.process: Process = None
-        self.pid: int = None
+        self.process: Optional[Process] = None
+        self.pid: Optional[int] = None
 
         self.name: str = name
         self.task_queue: Queue = queue
