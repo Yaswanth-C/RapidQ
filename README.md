@@ -29,7 +29,8 @@ pip install rapidq
 
 ----------
 ### Motivation
-Simply put - I just wanted to see if I could do it. &#x1F917;<br>
+Simply put - I just wanted to see if I could do it.  <br>
+This was part of my hobby project that somehow became a package &#x1F917;<br>
 Understanding how packages like `celery` and `dramatiq` works internally was a challenge I faced. I wanted a package that is understandable and simple.<br>
 
 ----------
@@ -68,8 +69,9 @@ Run the rapidq worker first. <br>`rapidq my_task` <br>
 Then on another terminal, run the my_task.py <br> `python my_task.py`
 
 ### Customizing broker properties
-If you wish to customize the serialization to use pickle (json by default) or want to change the broker url?
-It can be customized with a small configuration, using a simple python file.<br>
+If you wish to customize the serialization to use pickle (json by default) or want to change the broker url?<br>
+It can be customized with a small configuration, using a simple python file. Checkout this file ->`example\config_example.py`.<br>
+I used a python module because you can run any arbitrary code to read config from any other options such as .env .
 check similar example in `example\minimal_custom.py` and `example\config_example.py`
 ```python
 # my_custom_task.py
