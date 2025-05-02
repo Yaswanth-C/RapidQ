@@ -51,10 +51,6 @@ class RapidQ:
         """Decorator for callables to be registered as task."""
         return task_decorator(name)
 
-    def start_workers(self):
-        for _worker in self.workers.values():
-            _worker.process.start()
-
     def logger(self, message: str):
         print(f"Master: [PID: {self.pid}] {message}")
 
@@ -92,6 +88,10 @@ class RapidQ:
     def add_worker(self, worker: Worker):
         # we cant get the pid before it is started, so use name.
         self.workers[worker.name] = worker
+
+    def start_workers(self):
+        for _worker in self.workers.values():
+            _worker.process.start()
 
     @property
     def queued_tasks(self):
