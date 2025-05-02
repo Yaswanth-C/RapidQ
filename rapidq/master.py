@@ -51,10 +51,6 @@ class RapidQ:
         """Decorator for callables to be registered as task."""
         return task_decorator(name)
 
-    def start_workers(self):
-        for _worker in self.workers.values():
-            _worker.process.start()
-
     def logger(self, message: str):
         print(f"Master: [PID: {self.pid}] {message}")
 
@@ -93,6 +89,10 @@ class RapidQ:
         # we cant get the pid before it is started, so use name.
         self.workers[worker.name] = worker
 
+    def start_workers(self):
+        for _worker in self.workers.values():
+            _worker.process.start()
+
     @property
     def queued_tasks(self):
         """Returns the queued messages"""
@@ -108,6 +108,61 @@ class RapidQ:
             lambda _worker: _worker.state.value == WorkerState.IDLE,
             self.workers.values(),
         )
+
+    def wait_boot_up(self):
+        """Wait for workers to fully boot up"""
+        while True:
+            try:
+                # wait for all the workers to boot up.
+                if self.process_counter.value == self.no_of_workers:
+                    break
+                self.logger("waiting for workers to boot up...")
+                time.sleep(2)
+
+                # check for any abnormal shutdown event.
+                if list(self.workers.values())[0].shutdown_event.is_set():
+                    # worker didn't boot, there is something wrong with the setup.
+                    self.abnormal_shutdown()
+            except KeyboardInterrupt:
+                self.abnormal_shutdown()
+        self.boot_complete = True
+
+    def main_loop(self):
+        """Master main loop"""
+        self.wait_boot_up()
+        while True:
+            # loop through idle workers and assign tasks.
+            try:
+                for worker in self.idle_workers:
+                    pending_message_ids = self.queued_tasks
+                    if not pending_message_ids:
+                        break
+
+                    try:
+                        message_id = pending_message_ids.pop(0).decode()
+                        message = self.broker.dequeue_message(message_id=message_id)
+                    except UnicodeDecodeError as error:
+                        self.logger(
+                            f"Unable to decode message! message_id: {message_id} \n"
+                            "You have configured different serialization strategies"
+                            " for RapidQ and your project.\nCheck configuration."
+                            "You will have to restart the workers with correct serialization. Or flush the broker."
+                        )
+                        raise error
+
+                    # assign the task to the idle worker
+                    self.logger(
+                        f"assigning [{message_id}] [{message.task_name}] to {worker.name}"
+                    )
+                    worker.task_queue.put(message)
+                time.sleep(DEFAULT_IDLE_TIME)
+            except (KeyboardInterrupt, Exception) as error:
+                print(error)
+                self.abnormal_shutdown()
+
+    def abnormal_shutdown(self):
+        self.shutdown()
+        sys.exit(1)
 
     def shutdown(self):
         self.logger("Preparing to shutdown ...")
@@ -134,61 +189,12 @@ class RapidQ:
 
 
 def main_process(workers: int, module_name: str):
+    """Instantiates and runs the master application"""
     master = RapidQ(workers=workers, module_name=module_name, init_as_app=True)
     if not master.broker.is_alive():
         master.logger("Error: unable to access broker, shutting down.")
-        master.shutdown()
-        sys.exit(1)
+        master.abnormal_shutdown()
 
     master.create_workers()
     master.start_workers()
-
-    while True:
-        try:
-            # wait for all the workers to boot up.
-            if master.process_counter.value == workers:
-                break
-            master.logger("waiting for workers to boot up...")
-            time.sleep(2)
-
-            # check for any abnormal shutdown event.
-            if list(master.workers.values())[0].shutdown_event.is_set():
-                # worker didn't boot, there is something wrong with the setup.
-                master.shutdown()
-                sys.exit(1)
-        except KeyboardInterrupt:
-            master.shutdown()
-            sys.exit(1)
-
-    master.boot_complete = True
-
-    while True:
-        # loop through idle workers and assign tasks.
-        try:
-            for worker in master.idle_workers:
-                pending_message_ids = master.queued_tasks
-                if not pending_message_ids:
-                    break
-
-                try:
-                    message_id = pending_message_ids.pop(0).decode()
-                    message = master.broker.dequeue_message(message_id=message_id)
-                except UnicodeDecodeError as error:
-                    master.logger(
-                        f"Unable to decode message! message_id: {message_id} \n"
-                        "You have configured different serialization strategies"
-                        " for RapidQ and your project.\nCheck configuration."
-                        "You will have to restart the workers with correct serialization. Or flush the broker."
-                    )
-                    raise error
-
-                # assign the task to the idle worker
-                master.logger(
-                    f"assigning [{message_id}] [{message.task_name}] to {worker.name}"
-                )
-                worker.task_queue.put(message)
-            time.sleep(DEFAULT_IDLE_TIME)
-        except (KeyboardInterrupt, Exception) as error:
-            print(error)
-            master.shutdown()
-            sys.exit(1)
+    master.main_loop()

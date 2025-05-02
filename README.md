@@ -35,8 +35,8 @@ This was part of my hobby project that somehow became a package &#x1F917;<br>
 Understanding how packages like `celery` and `dramatiq` works internally was a challenge I faced. I wanted a package that is understandable and simple.<br>
 
 ----------
-### How RapidQ works?
-RapidQ uses python's multiprocessing library to run tasks. It has a master process, which is the RapidQ itself that handles the <br>
+### How RapidQ works? - The storyline
+RapidQ uses python's multiprocessing library to run tasks. It has a master process, which is the RapidQ itself that handles the
 broker communications and workers. Workers do not query the broker directly. Instead the master query the broker and assign tasks to idle workers.<br>
 Workers just run forever and check their task queues periodically. Master queries the broker only when there are idle workers available.
 
@@ -55,7 +55,7 @@ app = RapidQ()
 
 @app.background_task(name="simple-task")
 def test_func(msg):
-    # of course this could do more than just print.
+    # of course this function could do more than just print.
     print("simple task is running")
     print(msg)
 
@@ -101,7 +101,7 @@ Then on another terminal, run the my_custom_task.py <br> `python my_custom_task.
 
 ----------
 ### Number of workers.
-By default RapidQ uses 4 worker processes or the number of CPUs available on your system, whichever is smaller.<br>
+By default RapidQ uses 4 worker processes or the number of CPUs available on your system, whichever is smaller.
 You can control the number of workers by passing -w argument.  Eg `rapidq my_task -w 6`. Which will start 6 worker processes.
 
 ----------
@@ -110,7 +110,7 @@ May be you tested a lot and flooded your broker with messages.<br>
 You can flush the broker by running `rapidq-flush`
 
 ### Integrating with web frameworks
-It can be easily integrated with Flask and FastAPI applications. A simple Flask and FastAPI example is in **example** directory.<br>
+It can be easily integrated with Flask and FastAPI applications. A simple Flask and FastAPI example is in **example** directory.
 Currently RapidQ cannot be easily integrated with Django. Django support is coming in next version.
 
 ### Local development
