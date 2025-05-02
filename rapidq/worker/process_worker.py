@@ -95,7 +95,7 @@ class Worker:
             self.flush_tasks()
 
     def process_task(self, message: Message):
-        """Process the given message."""
+        """Process the given message. This is where the registered callables are executed."""
         self.update_state(WorkerState.BUSY)
         task_callable = TaskRegistry.fetch(message.task_name)
         if not task_callable:
@@ -115,7 +115,6 @@ class Worker:
 
     def run(self):
         """Implements a worker's execution logic."""
-        return_code = None
         self.logger(f"worker {self.name} started with pid: {self.pid}")
 
         # Run the loop until this event is set by master or the worker itself.
@@ -125,7 +124,7 @@ class Worker:
             except Empty:
                 task = None
             if task:
-                return_code = self.process_task(task)
+                self.process_task(task)
 
             try:
                 if not task:
@@ -134,5 +133,3 @@ class Worker:
                 self.stop()
                 self.update_state(WorkerState.SHUTDOWN)
             self.update_state(WorkerState.IDLE)
-
-        return return_code
