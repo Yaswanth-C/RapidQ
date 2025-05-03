@@ -6,3 +6,6 @@ dist/
 .vscode/*
 .venv
 env/
+
+# sonarqube analysis
+.scannerwork/
