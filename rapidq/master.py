@@ -94,12 +94,10 @@ class RapidQ:
         for _worker in self.workers.values():
             _worker.process.start()
 
-    @property
     def queued_tasks(self):
         """Returns the queued messages"""
         return self.broker.fetch_queued()
 
-    @property
     def idle_workers(self):
         """Returns the workers in idle state."""
         if not self.boot_complete:
@@ -134,12 +132,12 @@ class RapidQ:
         self.wait_boot_up()
         while True:
             try:
-                pending_message_ids = self.queued_tasks
+                pending_message_ids = self.queued_tasks()
                 if not pending_message_ids:
                     time.sleep(DEFAULT_IDLE_TIME)
                     continue
 
-                for worker in self.idle_workers:
+                for worker in self.idle_workers():
                     if not pending_message_ids:
                         break
 
