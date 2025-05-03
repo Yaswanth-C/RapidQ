@@ -1,6 +1,7 @@
 import os
 import redis
 from rapidq.message import Message
+from rapidq.constants import Serialization, DEFAULT_SERIALIZATION
 from .base import Broker
 
 
@@ -18,9 +19,13 @@ class RedisBroker(Broker):
         if not connection_params:
             connection_params = {}
 
-        serialization = os.environ.get("RAPIDQ_BROKER_SERIALIZER", "json")
-        if serialization not in ("pickle", "json"):
-            raise RuntimeError("serialization must be either `pickle` or `json`")
+        serialization = os.environ.get(
+            "RAPIDQ_BROKER_SERIALIZER", DEFAULT_SERIALIZATION
+        )
+        if serialization not in (Serialization.PICKLE, Serialization.JSON):
+            raise RuntimeError(
+                f"serialization must be in ({Serialization.PICKLE, Serialization.JSON})"
+            )
         self.serialization = serialization
 
         connection_params.setdefault(

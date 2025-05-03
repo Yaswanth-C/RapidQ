@@ -7,11 +7,10 @@ from multiprocessing.synchronize import Event as SyncEvent
 from multiprocessing.sharedctypes import Synchronized
 from queue import Empty
 
+from rapidq.constants import WorkerState, DEFAULT_IDLE_TIME
 from rapidq.message import Message
 from rapidq.registry import TaskRegistry
 from rapidq.utils import import_module
-
-from .state import WorkerState, DEFAULT_IDLE_TIME
 
 
 class Worker:
