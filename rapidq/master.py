@@ -1,6 +1,7 @@
 import time
 import sys
 import os
+import queue
 from typing import Dict
 from multiprocessing import Process, Queue, Event, Value
 
@@ -56,7 +57,7 @@ class RapidQ:
 
     def _create_worker(self, worker_num: int):
         """Create and return a single Worker instance."""
-        worker_queue = Queue()
+        worker_queue = Queue(maxsize=250)
         shutdown_event = Event()
         worker_state = Value("i", 0)
         process_name = f"Worker-{worker_num}"
@@ -104,10 +105,11 @@ class RapidQ:
         if not self.boot_complete:
             return []
 
-        return filter(
-            lambda _worker: _worker.state.value == WorkerState.IDLE,
-            self.workers.values(),
-        )
+        return [
+            _worker
+            for _worker in self.workers.values()
+            if _worker.state.value == WorkerState.IDLE
+        ]
 
     def wait_boot_up(self):
         """Wait for workers to fully boot up"""
@@ -117,7 +119,7 @@ class RapidQ:
                 if self.process_counter.value == self.no_of_workers:
                     break
                 self.logger("waiting for workers to boot up...")
-                time.sleep(2)
+                time.sleep(DEFAULT_IDLE_TIME)
 
                 # check for any abnormal shutdown event.
                 if list(self.workers.values())[0].shutdown_event.is_set():
@@ -131,10 +133,13 @@ class RapidQ:
         """Master main loop"""
         self.wait_boot_up()
         while True:
-            # loop through idle workers and assign tasks.
             try:
+                pending_message_ids = self.queued_tasks
+                if not pending_message_ids:
+                    time.sleep(DEFAULT_IDLE_TIME)
+                    continue
+
                 for worker in self.idle_workers:
-                    pending_message_ids = self.queued_tasks
                     if not pending_message_ids:
                         break
 
@@ -150,12 +155,16 @@ class RapidQ:
                         )
                         raise error
 
-                    # assign the task to the idle worker
-                    self.logger(
-                        f"assigning [{message_id}] [{message.task_name}] to {worker.name}"
-                    )
-                    worker.task_queue.put(message)
-                time.sleep(DEFAULT_IDLE_TIME)
+                    try:
+                        worker.task_queue.put(message, timeout=0.1)
+                        # assign the task to the idle worker
+                        self.logger(
+                            f"assigning [{message_id}] [{message.task_name}] to {worker.name}"
+                        )
+                    except queue.Full:
+                        pass
+                if not pending_message_ids:
+                    time.sleep(DEFAULT_IDLE_TIME)
             except (KeyboardInterrupt, Exception) as error:
                 print(error)
                 self.abnormal_shutdown()
