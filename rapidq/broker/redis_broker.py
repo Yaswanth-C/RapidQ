@@ -12,6 +12,7 @@ class RedisBroker(Broker):
     MESSAGE_PREFIX = "rapidq.message|"
     TASK_KEY = "rapidq.queued_tasks"
     DEFAULT_URL = "redis://localhost:6379/0"
+    BATCH_SIZE = 100
 
     def __init__(self, connection_params: dict = None):
         if not connection_params:
@@ -45,7 +46,7 @@ class RedisBroker(Broker):
         self.client.rpush(self.TASK_KEY, message.message_id)
 
     def fetch_queued(self):
-        return list(self.client.lrange(self.TASK_KEY, 0, -1))
+        return list(self.client.lrange(self.TASK_KEY, 0, self.BATCH_SIZE))
 
     def fetch_message(self, message_id: str) -> Message:
         key = self.generate_message_key(message_id)
