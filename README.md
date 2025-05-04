@@ -20,7 +20,7 @@ pip install rapidq
 
 #### It has: <br>
    - Only Redis as broker, with json and pickle serialization options.
-   - Process based workers, and is faster &#x1F680;.
+   - Process based workers, and is faster
    - No result backend
    - No retry behavior (of course it will be added)
    - No monitoring, as of now.
@@ -33,12 +33,6 @@ pip install rapidq
 Simply put - I just wanted to see if I could do it.  <br>
 This was part of my hobby project that somehow became a package &#x1F917;<br>
 Understanding how packages like `celery` and `dramatiq` works internally was a challenge I faced. I wanted a package that is understandable and simple.<br>
-
-----------
-### How RapidQ works? - The storyline
-RapidQ uses python's multiprocessing library to run tasks. It has a master process, which is the RapidQ itself that handles the
-broker communications and workers. Workers do not query the broker directly. Instead the master query the broker and assign tasks to idle workers.<br>
-Workers just run forever and check their task queues periodically. Master queries the broker only when there are idle workers available.
 
 ----------
 ### _This project is under development, so expect breaking changes when you upgrade_
@@ -71,6 +65,7 @@ Run the rapidq worker first. <br>`rapidq my_task` <br>
 
 Then on another terminal, run the my_task.py <br> `python my_task.py`
 
+----------
 ### Customizing broker properties
 If you wish to customize the serialization to use pickle (json by default) or want to change the broker url?<br>
 It can be customized with a small configuration, using a simple python file. Checkout this file ->`example\config_example.py`.<br>
@@ -118,3 +113,5 @@ For local development in windows, you can use either of the following ways to ge
 1) Redis for windows from: https://github.com/redis-windows/redis-windows
 2) Using redis with WSL: https://redis.io/docs/latest/operate/oss_and_stack/install/archive/install-redis/install-redis-on-windows/
 3) Using a remote Redis server.
+
+----------
