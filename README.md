@@ -11,7 +11,7 @@ A lightweight &#x1FAB6; and fast &#x1F680; background task processing library fo
 There is nothing fancy, no gimmick, RapidQ is a simple and easy to use package - works on any OS (yes, it supports windows).<br>
 Only Redis broker is currently available, and there is no result backend(could be implemented later).<br>
 
-Inspired by `celery` and `dramatiq`, but &#x1FAB6; lightweight, &#x1F680;faster and easy to use for small projects.<br>
+Inspired by `celery` and `dramatiq`, but lightweight, and easy to use for small projects.<br>
 
 ### Installation
 ```
