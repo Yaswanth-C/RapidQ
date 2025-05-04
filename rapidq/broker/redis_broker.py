@@ -1,7 +1,7 @@
 import os
 import redis
-from rapidq.message import Message
-from rapidq.constants import Serialization, DEFAULT_SERIALIZATION
+from rapidq.message import Message, SERIALIZER_MAP
+from rapidq.constants import DEFAULT_SERIALIZATION
 from .base import Broker
 
 
@@ -22,10 +22,8 @@ class RedisBroker(Broker):
         serialization = os.environ.get(
             "RAPIDQ_BROKER_SERIALIZER", DEFAULT_SERIALIZATION
         )
-        if serialization not in (Serialization.PICKLE, Serialization.JSON):
-            raise RuntimeError(
-                f"serialization must be in ({Serialization.PICKLE, Serialization.JSON})"
-            )
+        if serialization not in SERIALIZER_MAP:
+            raise RuntimeError(f"serialization must be in {list(SERIALIZER_MAP)}")
         self.serialization = serialization
 
         connection_params.setdefault(
@@ -45,12 +43,9 @@ class RedisBroker(Broker):
 
     def enqueue_message(self, message: Message) -> None:
         key = self.generate_message_key(message.message_id)
-        _data = (
-            message.pickle()
-            if self.serialization == Serialization.PICKLE
-            else message.json()
-        )
-        self.client.set(key, _data)
+        serializer_callable = SERIALIZER_MAP[self.serialization]
+        data = serializer_callable(message)
+        self.client.set(key, data)
         # This below Redis set will be monitored by master.
         self.client.rpush(self.TASK_KEY, message.message_id)
 

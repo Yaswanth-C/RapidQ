@@ -52,6 +52,16 @@ class Message:
         serialization = os.environ.get(
             "RAPIDQ_BROKER_SERIALIZER", DEFAULT_SERIALIZATION
         )
-        if serialization == Serialization.PICKLE:
-            return cls.from_pickle_bytes(raw_data)
-        return cls.from_json(raw_data)
+        deserializer_callable = DE_SERIALIZER_MAP[serialization]
+        return deserializer_callable(raw_data)
+
+
+SERIALIZER_MAP = {
+    Serialization.JSON: Message.json,
+    Serialization.PICKLE: Message.pickle,
+}
+
+DE_SERIALIZER_MAP = {
+    Serialization.JSON: Message.from_json,
+    Serialization.PICKLE: Message.from_pickle_bytes,
+}
