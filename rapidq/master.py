@@ -6,10 +6,10 @@ from typing import Dict
 from multiprocessing import Process, Queue, Event, Value
 
 from rapidq.broker import get_broker, Broker
+from rapidq.constants import WorkerState, DEFAULT_IDLE_TIME
 from rapidq.decorators import background_task as task_decorator
 from rapidq.utils import import_module
 from rapidq.worker.process_worker import Worker
-from rapidq.worker.state import WorkerState, DEFAULT_IDLE_TIME
 
 
 class RapidQ:
@@ -94,12 +94,10 @@ class RapidQ:
         for _worker in self.workers.values():
             _worker.process.start()
 
-    @property
     def queued_tasks(self):
         """Returns the queued messages"""
         return self.broker.fetch_queued()
 
-    @property
     def idle_workers(self):
         """Returns the workers in idle state."""
         if not self.boot_complete:
@@ -134,12 +132,12 @@ class RapidQ:
         self.wait_boot_up()
         while True:
             try:
-                pending_message_ids = self.queued_tasks
+                pending_message_ids = self.queued_tasks()
                 if not pending_message_ids:
                     time.sleep(DEFAULT_IDLE_TIME)
                     continue
 
-                for worker in self.idle_workers:
+                for worker in self.idle_workers():
                     if not pending_message_ids:
                         break
 
@@ -158,9 +156,7 @@ class RapidQ:
                     try:
                         worker.task_queue.put(message, timeout=0.1)
                         # assign the task to the idle worker
-                        self.logger(
-                            f"assigning [{message_id}] [{message.task_name}] to {worker.name}"
-                        )
+                        self.logger(f"assigning [{message_id}] to {worker.name}")
                     except queue.Full:
                         pass
                 if not pending_message_ids:

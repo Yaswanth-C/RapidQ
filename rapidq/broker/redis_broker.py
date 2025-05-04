@@ -1,6 +1,7 @@
 import os
 import redis
 from rapidq.message import Message
+from rapidq.constants import Serialization, DEFAULT_SERIALIZATION
 from .base import Broker
 
 
@@ -18,9 +19,13 @@ class RedisBroker(Broker):
         if not connection_params:
             connection_params = {}
 
-        serialization = os.environ.get("RAPIDQ_BROKER_SERIALIZER", "json")
-        if serialization not in ("pickle", "json"):
-            raise RuntimeError("serialization must be either `pickle` or `json`")
+        serialization = os.environ.get(
+            "RAPIDQ_BROKER_SERIALIZER", DEFAULT_SERIALIZATION
+        )
+        if serialization not in (Serialization.PICKLE, Serialization.JSON):
+            raise RuntimeError(
+                f"serialization must be in ({Serialization.PICKLE, Serialization.JSON})"
+            )
         self.serialization = serialization
 
         connection_params.setdefault(
@@ -28,42 +33,42 @@ class RedisBroker(Broker):
         )
         self.client = redis.Redis.from_url(**connection_params)
 
-    def is_alive(self):
+    def is_alive(self) -> bool:
         try:
             self.client.ping()
             return True
         except redis.ConnectionError:
             return False
 
-    def generate_message_key(self, message_id: str):
+    def generate_message_key(self, message_id: str) -> str:
         return f"{self.MESSAGE_PREFIX}{message_id}"
 
-    def enqueue_message(self, message: Message):
+    def enqueue_message(self, message: Message) -> None:
         key = self.generate_message_key(message.message_id)
-        _data = message.pickle() if self.serialization == "pickle" else message.json()
+        _data = (
+            message.pickle()
+            if self.serialization == Serialization.PICKLE
+            else message.json()
+        )
         self.client.set(key, _data)
         # This below Redis set will be monitored by master.
         self.client.rpush(self.TASK_KEY, message.message_id)
 
-    def fetch_queued(self):
+    def fetch_queued(self) -> list:
         return list(self.client.lrange(self.TASK_KEY, 0, self.BATCH_SIZE))
 
-    def fetch_message(self, message_id: str) -> Message:
+    def fetch_message(self, message_id: str) -> bytes | str:
         key = self.generate_message_key(message_id)
-        byte_or_str = self.client.get(key)
+        return self.client.get(key)
 
-        if self.serialization == "pickle":
-            return Message.from_pickle_bytes(byte_or_str)
-        return Message.from_json(byte_or_str)
-
-    def dequeue_message(self, message_id: str):
+    def dequeue_message(self, message_id: str) -> bytes | str:
         key = self.generate_message_key(message_id)
         message = self.fetch_message(message_id)
         self.client.delete(key)
         self.client.lrem(self.TASK_KEY, 0, message_id)
         return message
 
-    def flush(self):
+    def flush(self) -> None:
         pattern = "rapidq*"
         pipe = self.client.pipeline()
         for key in self.client.scan_iter(match=pattern):
