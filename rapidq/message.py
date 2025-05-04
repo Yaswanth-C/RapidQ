@@ -1,6 +1,8 @@
 import json
 import uuid
 import pickle
+import os
+from rapidq.constants import Serialization, DEFAULT_SERIALIZATION
 
 
 class Message:
@@ -44,3 +46,22 @@ class Message:
     @classmethod
     def from_pickle_bytes(cls, pickle_bytes) -> "Message":
         return cls(**pickle.loads(pickle_bytes))
+
+    @classmethod
+    def get_message_from_raw_data(cls, raw_data) -> "Message":
+        serialization = os.environ.get(
+            "RAPIDQ_BROKER_SERIALIZER", DEFAULT_SERIALIZATION
+        )
+        deserializer_callable = DE_SERIALIZER_MAP[serialization]
+        return deserializer_callable(raw_data)
+
+
+SERIALIZER_MAP = {
+    Serialization.JSON: Message.json,
+    Serialization.PICKLE: Message.pickle,
+}
+
+DE_SERIALIZER_MAP = {
+    Serialization.JSON: Message.from_json,
+    Serialization.PICKLE: Message.from_pickle_bytes,
+}

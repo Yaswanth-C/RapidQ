@@ -7,11 +7,10 @@ from multiprocessing.synchronize import Event as SyncEvent
 from multiprocessing.sharedctypes import Synchronized
 from queue import Empty
 
+from rapidq.constants import WorkerState, DEFAULT_IDLE_TIME
 from rapidq.message import Message
 from rapidq.registry import TaskRegistry
 from rapidq.utils import import_module
-
-from .state import WorkerState, DEFAULT_IDLE_TIME
 
 
 class Worker:
@@ -94,8 +93,11 @@ class Worker:
             self.shutdown_event.set()
             self.flush_tasks()
 
-    def process_task(self, message: Message):
+    def process_task(self, raw_message: bytes | str):
         """Process the given message. This is where the registered callables are executed."""
+        message = Message.get_message_from_raw_data(
+            raw_message
+        )  # deserialize the message.
         self.update_state(WorkerState.BUSY)
         task_callable = TaskRegistry.fetch(message.task_name)
         if not task_callable:
@@ -120,6 +122,7 @@ class Worker:
         # Run the loop until this event is set by master or the worker itself.
         while not self.shutdown_event.is_set():
             try:
+                # task will be a raw message. Either bytes or string.
                 task = self.task_queue.get(block=False)
             except Empty:
                 task = None
