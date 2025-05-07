@@ -67,7 +67,7 @@ Then on another terminal, run the my_task.py <br> `python my_task.py`
 
 ----------
 ### Customizing broker properties
-If you wish to customize the serialization to use pickle (json by default) or want to change the broker url?<br>
+If you wish to customize the serialization to use json (pickle by default) or want to change the broker url?<br>
 It can be customized with a small configuration, using a simple python file. Checkout this file ->`example\config_example.py`.<br>
 I used a python module because you can run any arbitrary code to read config from any other options such as .env .
 check similar example in `example\minimal_custom.py` and `example\config_example.py`
