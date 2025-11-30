@@ -1,13 +1,20 @@
 repos:
+
 -   repo: https://github.com/psf/black
-    rev: 25.1.0
+    rev: 25.11.0
     hooks:
     -   id: black
 
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
     -   id: check-ast
     -   id: debug-statements
     -   id: mixed-line-ending
     -   id: end-of-file-fixer
+
+-   repo: https://github.com/pycqa/isort
+    rev: 7.0.0
+    hooks:
+    -   id: isort
+        args: ["--profile", "black"]
