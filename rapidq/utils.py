@@ -1,9 +1,10 @@
 import importlib
 import os
 import sys
+from types import ModuleType
 
 
-def import_module(module_name):
+def import_module(module_name) -> ModuleType:
     current_path = os.getcwd()
     if current_path not in sys.path:
         sys.path.append(current_path)

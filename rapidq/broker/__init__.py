@@ -1,6 +1,7 @@
 from typing import Type
-from .base import Broker
-from .redis_broker import RedisBroker
+
+from rapidq.broker.base import Broker
+from rapidq.broker.redis_broker import RedisBroker
 
 
 def get_broker_class() -> Type[Broker]:
@@ -8,7 +9,7 @@ def get_broker_class() -> Type[Broker]:
     return RedisBroker
 
 
-broker_instance = None
+broker_instance: Broker | None = None
 
 
 def get_broker() -> Broker:

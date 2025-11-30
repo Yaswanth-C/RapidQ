@@ -1,13 +1,12 @@
 import os
 import time
-from typing import Optional
-
 from multiprocessing import Process, Queue, Value
-from multiprocessing.synchronize import Event as SyncEvent
 from multiprocessing.sharedctypes import Synchronized
+from multiprocessing.synchronize import Event as SyncEvent
 from queue import Empty
+from typing import Any, Callable, Optional
 
-from rapidq.constants import WorkerState, DEFAULT_IDLE_TIME
+from rapidq.constants import DEFAULT_IDLE_TIME, WorkerState
 from rapidq.message import Message
 from rapidq.registry import TaskRegistry
 from rapidq.utils import import_module
@@ -31,7 +30,7 @@ class Worker:
         self.pid: Optional[int] = None
 
         self.name: str = name
-        self.task_queue: Queue = queue
+        self.task_queue: Queue[bytes] = queue
         self.shutdown_event: SyncEvent = shutdown_event
         self.counter: Synchronized = process_counter
         self.state: Synchronized = state
@@ -46,7 +45,7 @@ class Worker:
         except Exception as error:
             self.stop()
             self.logger("Startup failed!")
-            self.logger(error)
+            self.logger(str(error))
 
     def update_state(self, state: int):
         """Updates a worker state"""
@@ -80,9 +79,10 @@ class Worker:
             except Empty:
                 pass
 
-    def join(self, timeout: int = None):
+    def join(self, timeout: int | None = None):
         """Wait for the worker process to exit."""
-        self.process.join(timeout=timeout)
+        if self.process:
+            self.process.join(timeout=timeout)
 
     def stop(self):
         """
@@ -93,7 +93,7 @@ class Worker:
             self.shutdown_event.set()
             self.flush_tasks()
 
-    def process_task(self, raw_message: bytes | str):
+    def process_task(self, raw_message: bytes):
         """Process the given message. This is where the registered callables are executed."""
         message = Message.get_message_from_raw_data(
             raw_message
@@ -122,7 +122,7 @@ class Worker:
         # Run the loop until this event is set by master or the worker itself.
         while not self.shutdown_event.is_set():
             try:
-                # task will be a raw message. Either bytes or string.
+                # task will be a message in bytes.
                 task = self.task_queue.get(block=False)
             except Empty:
                 task = None

@@ -1,9 +1,9 @@
+from multiprocessing import cpu_count
+
+
 class Serialization:
-    PICKLE = "pickle"
-    JSON = "json"
-
-
-DEFAULT_SERIALIZATION = Serialization.PICKLE
+    PICKLE: str = "pickle"
+    JSON: str = "json"
 
 
 class WorkerState:
@@ -13,4 +13,8 @@ class WorkerState:
     SHUTDOWN = 3
 
 
+DEFAULT_SERIALIZATION: str = Serialization.PICKLE
+DEFAULT_QUEUE_NAME = "default"
 DEFAULT_IDLE_TIME = 0.5  # 500ms
+
+CPU_COUNT: int = min(4, cpu_count())

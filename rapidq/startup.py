@@ -1,15 +1,15 @@
 import argparse
 import os
 import sys
-from multiprocessing import cpu_count
+from argparse import Namespace
+
+from rapidq.broker import Broker, get_broker
+from rapidq.constants import CPU_COUNT
 from rapidq.master import main_process
-from rapidq.broker import get_broker
 from rapidq.utils import import_module
 
-CPU_COUNT = min(4, cpu_count())
 
-
-def parse_args():
+def parse_args() -> Namespace:
     """
     Parse command line arguments.
     """
@@ -45,7 +45,7 @@ def main():
     return 0
 
 
-def flush_queue():
+def flush_queue() -> None:
     broker = get_broker()
     broker.flush()
     print("Tasks flushed.")

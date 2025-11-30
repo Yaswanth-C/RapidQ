@@ -1,8 +1,10 @@
 import json
-import uuid
-import pickle
 import os
-from rapidq.constants import Serialization, DEFAULT_SERIALIZATION
+import pickle
+import uuid
+from typing import Any
+
+from rapidq.constants import DEFAULT_SERIALIZATION, Serialization
 
 
 class Message:
@@ -15,16 +17,16 @@ class Message:
         task_name: str,
         queue_name: str,
         args: tuple,
-        kwargs: dict,
-        message_id: str = None,
-    ):
-        self.task_name = task_name
-        self.queue_name = queue_name
-        self.args = list(args)
-        self.kwargs = kwargs
-        self.message_id = message_id or str(uuid.uuid4())
+        kwargs: dict[str, Any],
+        message_id: str | None = None,
+    ) -> None:
+        self.task_name: str = task_name
+        self.queue_name: str = queue_name
+        self.args: list[Any] = list(args)
+        self.kwargs: dict[str, Any] = kwargs
+        self.message_id: str = message_id or str(uuid.uuid4())
 
-    def dict(self):
+    def dict(self) -> dict[str, Any]:
         return {
             "task_name": self.task_name,
             "queue_name": self.queue_name,
@@ -33,22 +35,22 @@ class Message:
             "message_id": self.message_id,
         }
 
-    def json(self):
+    def json(self) -> str:
         return json.dumps(self.dict())
 
-    def pickle(self):
+    def pickle(self) -> bytes:
         return pickle.dumps(self.dict())
 
     @classmethod
-    def from_json(cls, json_str) -> "Message":
-        return cls(**json.loads(json_str))
+    def from_json(cls, json_data: bytes) -> "Message":
+        return cls(**json.loads(json_data))
 
     @classmethod
-    def from_pickle_bytes(cls, pickle_bytes) -> "Message":
-        return cls(**pickle.loads(pickle_bytes))
+    def from_pickle_bytes(cls, pickle_data: bytes) -> "Message":
+        return cls(**pickle.loads(pickle_data))
 
     @classmethod
-    def get_message_from_raw_data(cls, raw_data) -> "Message":
+    def get_message_from_raw_data(cls, raw_data: bytes) -> "Message":
         serialization = os.environ.get(
             "RAPIDQ_BROKER_SERIALIZER", DEFAULT_SERIALIZATION
         )

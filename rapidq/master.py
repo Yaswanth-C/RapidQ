@@ -1,12 +1,15 @@
-import time
-import sys
 import os
 import queue
-from typing import Dict
-from multiprocessing import Process, Queue, Event, Value
+import sys
+import time
+from multiprocessing import Event, Process, Queue, Value
+from multiprocessing.sharedctypes import Synchronized
+from multiprocessing.synchronize import Event as SyncEvent
+from typing import Any, Callable, Dict
 
-from rapidq.broker import get_broker, Broker
-from rapidq.constants import WorkerState, DEFAULT_IDLE_TIME
+from rapidq.broker import Broker, get_broker
+from rapidq.constants import CPU_COUNT, DEFAULT_IDLE_TIME, WorkerState
+from rapidq.decorators import BackGroundTask
 from rapidq.decorators import background_task as task_decorator
 from rapidq.utils import import_module
 from rapidq.worker.process_worker import Worker
@@ -20,9 +23,9 @@ class RapidQ:
     """
 
     def __init__(
-        self, workers: int = None, module_name: str = None, init_as_app: bool = False
-    ):
-        self.no_of_workers = workers
+        self, workers: int = CPU_COUNT, module_name: str = "", init_as_app: bool = False
+    ) -> None:
+        self.no_of_workers: int = workers
         self.module_name: str = module_name
         self.boot_complete: bool = False
         if init_as_app:
@@ -30,13 +33,13 @@ class RapidQ:
                 raise RuntimeError("Arguments are improper unable to start RapidQ.")
             self.initialize()
 
-    def initialize(self):
-        self.process_counter = Value("i", 0)
+    def initialize(self) -> None:
+        self.process_counter: Synchronized[int] = Value("i", 0)
         self.workers: Dict[str, Worker] = {}
         self.pid: int = os.getpid()
         self.broker: Broker = get_broker()
 
-    def config_from_module(self, module_path: str):
+    def config_from_module(self, module_path: str) -> None:
         module = import_module(module_path)
 
         configurable_keys = (
@@ -48,18 +51,20 @@ class RapidQ:
                 continue
             os.environ[key] = str(getattr(module, key))
 
-    def background_task(self, name: str):
+    def background_task(
+        self, name: str
+    ) -> Callable[[Callable[..., Any]], BackGroundTask]:
         """Decorator for callables to be registered as task."""
         return task_decorator(name)
 
-    def logger(self, message: str):
+    def logger(self, message: str) -> None:
         print(f"Master: [PID: {self.pid}] {message}")
 
-    def _create_worker(self, worker_num: int):
+    def _create_worker(self, worker_num: int) -> Worker:
         """Create and return a single Worker instance."""
-        worker_queue = Queue(maxsize=250)
-        shutdown_event = Event()
-        worker_state = Value("i", 0)
+        worker_queue: Queue[bytes] = Queue(maxsize=250)
+        shutdown_event: SyncEvent = Event()
+        worker_state: Synchronized[int] = Value("i", 0)
         process_name = f"Worker-{worker_num}"
         worker = Worker(
             queue=worker_queue,
@@ -80,25 +85,27 @@ class RapidQ:
         worker.process = process
         return worker
 
-    def create_workers(self):
+    def create_workers(self) -> None:
         """Creates the worker processes."""
         for worker_num in range(self.no_of_workers):
             worker = self._create_worker(worker_num)
             self.add_worker(worker=worker)
 
-    def add_worker(self, worker: Worker):
+    def add_worker(self, worker: Worker) -> None:
         # we cant get the pid before it is started, so use name.
         self.workers[worker.name] = worker
 
-    def start_workers(self):
-        for _worker in self.workers.values():
-            _worker.process.start()
+    def start_workers(self) -> None:
+        for worker in self.workers.values():
+            if not worker.process:
+                continue
+            worker.process.start()
 
-    def queued_tasks(self):
+    def queued_tasks(self) -> list[bytes]:
         """Returns the queued messages"""
         return self.broker.fetch_queued()
 
-    def idle_workers(self):
+    def idle_workers(self) -> list[Worker]:
         """Returns the workers in idle state."""
         if not self.boot_complete:
             return []
@@ -109,7 +116,7 @@ class RapidQ:
             if _worker.state.value == WorkerState.IDLE
         ]
 
-    def wait_boot_up(self):
+    def wait_boot_up(self) -> None:
         """Wait for workers to fully boot up"""
         while True:
             try:
@@ -127,7 +134,7 @@ class RapidQ:
                 self.abnormal_shutdown()
         self.boot_complete = True
 
-    def main_loop(self):
+    def main_loop(self) -> None:
         """Master main loop"""
         self.wait_boot_up()
         while True:
@@ -165,13 +172,15 @@ class RapidQ:
                 print(error)
                 self.abnormal_shutdown()
 
-    def abnormal_shutdown(self):
+    def abnormal_shutdown(self) -> None:
         self.shutdown()
         sys.exit(1)
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         self.logger("Preparing to shutdown ...")
         for worker in self.workers.values():
+            if not worker.process:
+                continue
             try:
                 self.logger(
                     f"Waiting for {worker.process.name} - PID: {worker.process.pid} to exit!"
@@ -193,7 +202,7 @@ class RapidQ:
         self.logger("Shutting down master")
 
 
-def main_process(workers: int, module_name: str):
+def main_process(workers: int, module_name: str) -> None:
     """Instantiates and runs the master application"""
     master = RapidQ(workers=workers, module_name=module_name, init_as_app=True)
     if not master.broker.is_alive():
