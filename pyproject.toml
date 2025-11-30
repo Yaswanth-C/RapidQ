@@ -31,11 +31,12 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-redis = "5.2.1"
+redis = ">=7.1.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "25.1.0"
-pre-commit = "4.2.0"
+isort = "7.0.0"
+black = "25.11.0"
+pre-commit = "4.5.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
