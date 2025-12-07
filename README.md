@@ -3,8 +3,8 @@
 ![Python](https://img.shields.io/badge/Python-3.10_%7c_3.11_%7c_3.12_%7c_3.13-blue)
 [![PyPI Version](https://img.shields.io/pypi/v/RapidQ?style=flat-square?cacheSeconds=3600)](https://pypi.org/project/RapidQ/)
 ![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)
-![Views](https://komarev.com/ghpvc/?username=rapidq&label=Repo+Views)
-<!-- [![Download Stats](https://img.shields.io/pypi/dm/rapidq)](https://pypistats.org/packages/rapidq) -->
+[![PyPI Downloads](https://static.pepy.tech/personalized-badge/rapidq?period=total&units=NONE&left_color=BLACK&right_color=MAGENTA&left_text=Downloads)](https://pepy.tech/projects/rapidq)
+![Views](https://komarev.com/ghpvc/?username=rapidq&label=Repo+Views&style=pixel)
 #### For those who want a bare minimum task queue, Just run and discard, no headaches.
 A lightweight &#x1FAB6; and fast &#x1F680; background task processing library for Python, developed with simplicity in mind.<br>
 There is nothing fancy, no gimmick, RapidQ is a simple and easy to use package - works on any OS (yes, it supports windows).<br>
