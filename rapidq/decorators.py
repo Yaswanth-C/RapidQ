@@ -11,14 +11,10 @@ class BackGroundTask:
     def __init__(
         self,
         func: Callable[..., Any],
-        args: tuple,
-        kwargs: dict[str, Any],
         name: str,
         broker: Broker,
     ) -> None:
         self.func = func
-        self.args = args
-        self.kwargs = kwargs
         func_name = getattr(func, "__name__", None)
         self.name = name or f"{func.__module__}.{func_name}"
         self.broker = broker
@@ -54,8 +50,6 @@ def background_task(name: str) -> Callable[[Callable[..., Any]], BackGroundTask]
             broker = get_broker()
             return BackGroundTask(
                 func=func,
-                args=args,
-                kwargs=kwargs,
                 name=name,
                 broker=broker,
             )
