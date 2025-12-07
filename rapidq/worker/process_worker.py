@@ -54,6 +54,7 @@ class Worker:
 
     def logger(self, message: str):
         """For logging messages."""
+        # TODO: implement logging
         print(f"{self.name} [PID: {self.pid}]: {message}")
 
     def start(self):
