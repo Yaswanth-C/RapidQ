@@ -6,7 +6,6 @@
 ![Views](https://komarev.com/ghpvc/?username=rapidq&label=Repo+Views)
 <!-- [![Download Stats](https://img.shields.io/pypi/dm/rapidq)](https://pypistats.org/packages/rapidq) -->
 #### For those who want a bare minimum task queue, Just run and discard, no headaches.
-#### Only &#x1F90F; ~700 lines of code
 A lightweight &#x1FAB6; and fast &#x1F680; background task processing library for Python, developed with simplicity in mind.<br>
 There is nothing fancy, no gimmick, RapidQ is a simple and easy to use package - works on any OS (yes, it supports windows).<br>
 Only Redis broker is currently available, and there is no result backend(could be implemented later).<br>
