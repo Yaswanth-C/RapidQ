@@ -24,7 +24,7 @@ class BackGroundTask:
     def __call__(self, *args, **kwargs) -> Any:
         return self.func(*args, **kwargs)
 
-    def in_background(self, *args, **kwargs) -> Message:
+    def delay(self, *args, **kwargs) -> Message:
         """Queue the task for processing later."""
         message = Message(
             task_name=self.name,

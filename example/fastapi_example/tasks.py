@@ -1,8 +1,9 @@
 import time
+
 from .rapidq_app import rapidq_app
 
 
-@rapidq_app.background_task("example-task")
+@rapidq_app.task("example-task")
 def test_task():
     print("test task is running")
     # do something computationally intensive

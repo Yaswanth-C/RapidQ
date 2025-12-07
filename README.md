@@ -46,7 +46,7 @@ from rapidq import RapidQ
 
 app = RapidQ()
 
-@app.background_task(name="simple-task")
+@app.task(name="simple-task")
 def test_func(msg):
     # of course this function could do more than just print.
     print("simple task is running")
@@ -54,7 +54,7 @@ def test_func(msg):
 
 
 if __name__ == "__main__":
-    test_func.in_background(msg="Hello, I'm running in background")
+    test_func.delay(msg="Hello, I'm running in background")
      # Line below will be printed directly and will not go to worker.
     test_func(msg="Hello, I'm running in the same process!")
 ```
@@ -80,14 +80,14 @@ app = RapidQ()
 app.config_from_module("example.config_example")
 
 
-@app.background_task(name="simple-task")
+@app.task(name="simple-task")
 def test_func(msg):
     print("simple task is running")
     print(msg)
 
 
 if __name__ == "__main__":
-    test_func.in_background(msg="Hello, I'm running")
+    test_func.delay(msg="Hello, I'm running")
 ```
 
 You can run `rapidq` as before. <br>`rapidq my_custom_task` <br>
