@@ -22,7 +22,7 @@ class Broker(ABC):
         """
         Fetch the raw message from the broker using message id.
         Returned data will not be a Message instance.
-        Use `Message.get_message_from_raw_data` for de-serializing.
+        Use `Message.deserialize` for de-serializing.
         """
 
     @abstractmethod
@@ -30,7 +30,6 @@ class Broker(ABC):
         """
         Remove a message from broker using `message_id` and return it.
         Returned data will not be a Message instance.
-        Use `Message.get_message_from_raw_data` for de-serializing.
         """
 
     @abstractmethod
