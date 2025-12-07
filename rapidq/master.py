@@ -51,9 +51,7 @@ class RapidQ:
                 continue
             os.environ[key] = str(getattr(module, key))
 
-    def background_task(
-        self, name: str
-    ) -> Callable[[Callable[..., Any]], BackGroundTask]:
+    def task(self, name: str) -> Callable[[Callable[..., Any]], BackGroundTask]:
         """Decorator for callables to be registered as task."""
         return task_decorator(name)
 
