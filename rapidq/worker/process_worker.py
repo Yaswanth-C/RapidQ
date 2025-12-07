@@ -95,9 +95,7 @@ class Worker:
 
     def process_task(self, raw_message: bytes):
         """Process the given message. This is where the registered callables are executed."""
-        message = Message.get_message_from_raw_data(
-            raw_message
-        )  # deserialize the message.
+        message = Message.deserialize(raw_message)
         self.update_state(WorkerState.BUSY)
         task_callable = TaskRegistry.fetch(message.task_name)
         if not task_callable:
