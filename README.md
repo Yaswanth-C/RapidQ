@@ -13,7 +13,7 @@ Only Redis broker is currently available, and there is no result backend(could b
 Inspired by `celery` and `dramatiq`, but lightweight, and easy to use for small projects.<br>
 
 ### Installation
-```
+```bash
 pip install rapidq
 ```
 
@@ -105,9 +105,15 @@ You can flush the broker by running `rapidq-flush`
 
 ### Integrating with web frameworks
 It can be easily integrated with Flask and FastAPI applications. A simple Flask, FastAPI and Django example is in **example** directory.
-Currently RapidQ has experimental support for Django.
+For Flask and FastAPI like frameworks, if configured right - rapidq can be run by specifying your main python module name or a dotted path to the module.
+```bash
+rapidq main -w 4
+OR
+rapidq application.main -w 4
+```
 
 ### Setting up with Django
+Currently RapidQ has experimental support for Django.
 An example project is available in `example` directory.
 
 Create a file in your django project's directory: `project/rapidq.py`
@@ -132,6 +138,11 @@ Then you need to import this app in your `project/__init__.py`. This ensures the
 from .rapidq import app
 
 __all__ = ('app', )
+```
+
+Now run rapidq by specifying your project name.
+```bash
+rapidq your_project -w 4
 ```
 
 By default Rapidq automatically discovers `tasks` modules from all `INSTALLED_APPS`. <br>
