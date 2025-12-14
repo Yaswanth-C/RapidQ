@@ -139,7 +139,7 @@ If you want to use a different module name, use the below variable in your djang
 
 `your_project/settings.py:`
 ```python
-DEFAULT_AUTO_DISCOVER_MODULES = ("tasks",)
+RAPIDQ_TASK_DISCOVER_MODULES = ("tasks",)
 ```
 
 If you like this project, drop a &#x2B50;. And help is always welcome via issues or pull requests.
