@@ -7,7 +7,7 @@
 ![Views](https://komarev.com/ghpvc/?username=rapidq&label=Repo+Interactions)
 #### For those who want a bare minimum task queue, Just run and discard, no headaches.
 A lightweight &#x1FAB6; and fast &#x1F680; background task processing library for Python, developed with simplicity in mind.<br>
-There is nothing fancy, no gimmick, RapidQ is a simple and easy to use package - works on any OS (yes, it supports windows).<br>
+There is nothing fancy, RapidQ is a simple and easy to use package - works on any OS.<br>
 Only Redis broker is currently available, and there is no result backend(could be implemented later).<br>
 
 Inspired by `celery` and `dramatiq`, but lightweight, and easy to use for small projects.<br>
@@ -108,7 +108,9 @@ It can be easily integrated with Flask and FastAPI applications. A simple Flask,
 For Flask and FastAPI like frameworks, if configured right - rapidq can be run by specifying your main python module name or a dotted path to the module.
 ```bash
 rapidq main -w 4
+```
 OR
+```bash
 rapidq application.main -w 4
 ```
 
