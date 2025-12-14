@@ -2,9 +2,9 @@
 ![License](https://img.shields.io/badge/license-BSD3-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.10_%7c_3.11_%7c_3.12_%7c_3.13-blue)
 [![PyPI Version](https://img.shields.io/pypi/v/RapidQ?style=flat-square?cacheSeconds=3600)](https://pypi.org/project/RapidQ/)
-![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)
 [![PyPI Downloads](https://static.pepy.tech/personalized-badge/rapidq?period=total&units=NONE&left_color=BLACK&right_color=MAGENTA&left_text=Downloads)](https://pepy.tech/projects/rapidq)
-![Views](https://komarev.com/ghpvc/?username=rapidq&label=Repo+Views&style=pixel)
+![Code style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)
+![Views](https://komarev.com/ghpvc/?username=rapidq&label=Repo+Interactions)
 #### For those who want a bare minimum task queue, Just run and discard, no headaches.
 A lightweight &#x1FAB6; and fast &#x1F680; background task processing library for Python, developed with simplicity in mind.<br>
 There is nothing fancy, no gimmick, RapidQ is a simple and easy to use package - works on any OS (yes, it supports windows).<br>
@@ -18,7 +18,7 @@ pip install rapidq
 ```
 
 #### It has: <br>
-   - Only Redis as broker, with json and pickle serialization options.
+   - Only Redis as broker, with flexible serialization options. (You can use your own too.)
    - Process based workers, and is faster
    - No result backend
    - No retry behavior (of course it will be added)
@@ -30,7 +30,7 @@ pip install rapidq
 ----------
 ### Motivation
 Simply put - I just wanted to see if I could do it.  <br>
-This was part of my hobby project that somehow became a package &#x1F917;<br>
+This was part of my hobby project that somehow became a package. <br>
 Understanding how packages like `celery` and `dramatiq` works internally was a challenge I faced. I wanted a package that is understandable and simple.<br>
 
 ----------
@@ -104,7 +104,7 @@ May be you tested a lot and flooded your broker with messages.<br>
 You can flush the broker by running `rapidq-flush`
 
 ### Integrating with web frameworks
-It can be easily integrated with Flask and FastAPI applications. A simple Flask and FastAPI example is in **example** directory.
+It can be easily integrated with Flask and FastAPI applications. A simple Flask, FastAPI and Django example is in **example** directory.
 Currently RapidQ has experimental support for Django.
 
 ### Setting up with Django
@@ -135,7 +135,7 @@ __all__ = ('app', )
 ```
 
 By default Rapidq automatically discovers `tasks` modules from all `INSTALLED_APPS`. <br>
-If you want to use a different module name use the below variable in your django settings module.
+If you want to use a different module name, use the below variable in your django settings module.
 
 `your_project/settings.py:`
 ```python
