@@ -4,7 +4,7 @@ from multiprocessing import Process, Queue, Value
 from multiprocessing.sharedctypes import Synchronized
 from multiprocessing.synchronize import Event as SyncEvent
 from queue import Empty
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 from rapidq.constants import DEFAULT_IDLE_TIME, WorkerState
 from rapidq.message import Message
@@ -31,8 +31,8 @@ class Worker:
         state: Synchronized,
         module_name: str,
     ):
-        self.process: Optional[Process] = None
-        self.pid: Optional[int] = None
+        self.process: Process | None = None
+        self.pid: int | None = None
 
         self.name: str = name
         self.task_queue: Queue[bytes] = queue

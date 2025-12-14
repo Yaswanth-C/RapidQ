@@ -5,7 +5,7 @@ import time
 from multiprocessing import Event, Process, Queue, Value
 from multiprocessing.sharedctypes import Synchronized
 from multiprocessing.synchronize import Event as SyncEvent
-from typing import Any, Callable, Dict
+from typing import Any, Callable
 
 from rapidq.broker import Broker, get_broker
 from rapidq.constants import CPU_COUNT, DEFAULT_IDLE_TIME, WorkerState
@@ -35,7 +35,7 @@ class RapidQ:
 
     def initialize(self) -> None:
         self.process_counter: Synchronized[int] = Value("i", 0)
-        self.workers: Dict[str, Worker] = {}
+        self.workers: dict[str, Worker] = {}
         self.pid: int = os.getpid()
         self.broker: Broker = get_broker()
 
