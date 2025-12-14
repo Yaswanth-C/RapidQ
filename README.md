@@ -110,23 +110,23 @@ Currently RapidQ has experimental support for Django.
 ### Setting up with Django
 An example project is available in `example` directory.
 
-Create a file in your django project's directory: `your_project/rapidq.py`
+Create a file in your django project's directory: `project/rapidq.py`
 ```python
 
 import os
 from rapidq import RapidQ
 
 # Configure Django settings module in env.
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "test_project.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "project.settings")
 
 # app instance.
 app = RapidQ()
 
 ```
 
-Then you need to import this app in your `your_project/__init__.py`. This ensures the app is loaded when Django starts.
+Then you need to import this app in your `project/__init__.py`. This ensures the app is loaded when Django starts.
 
-`your_project/__init__.py:`
+`project/__init__.py:`
 
 ```python
 from .rapidq import app
@@ -137,7 +137,7 @@ __all__ = ('app', )
 By default Rapidq automatically discovers `tasks` modules from all `INSTALLED_APPS`. <br>
 If you want to use a different module name, use the below variable in your django settings module.
 
-`your_project/settings.py:`
+`project/settings.py:`
 ```python
 RAPIDQ_TASK_DISCOVER_MODULES = ("tasks",)
 ```
