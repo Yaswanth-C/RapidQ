@@ -16,5 +16,6 @@ class WorkerState:
 DEFAULT_SERIALIZATION: str = Serialization.PICKLE
 DEFAULT_QUEUE_NAME: str = "default"
 DEFAULT_IDLE_TIME: float = 0.5  # 500ms
+DEFAULT_AUTO_DISCOVER_MODULES: tuple = ("tasks",)
 
 CPU_COUNT: int = min(4, cpu_count())

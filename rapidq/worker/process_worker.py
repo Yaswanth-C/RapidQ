@@ -8,8 +8,13 @@ from typing import Any, Callable, Optional
 
 from rapidq.constants import DEFAULT_IDLE_TIME, WorkerState
 from rapidq.message import Message
-from rapidq.registry import TaskRegistry
+from rapidq.registry import FRAMEWORK_LOADERS, TaskRegistry
 from rapidq.utils import import_module
+
+
+def initialize_framework_loaders(worker):
+    for loader_func in FRAMEWORK_LOADERS:
+        loader_func(worker)
 
 
 class Worker:
@@ -65,6 +70,9 @@ class Worker:
 
         self.pid = os.getpid()
         self.logger(f"starting with PID: {self.pid}")
+
+        # initialize any web framework loaders if any.
+        initialize_framework_loaders(self)
         # increment the worker counter
         with self.counter.get_lock():
             self.counter.value += 1

@@ -1,5 +1,7 @@
 from typing import Any, Callable
 
+FRAMEWORK_LOADERS: set[Callable] = set()
+
 
 class TaskRegistry:
     """
@@ -21,3 +23,13 @@ class TaskRegistry:
     def fetch(cls, name: str) -> Callable[..., Any] | None:
         tasks: dict[str, Callable[..., Any]] = cls.__dict__.get("tasks", {})
         return tasks.get(name)
+
+
+def framework_loader(loader_callable: Callable[..., None]):
+    """
+    Registers a callable for initializing web frameworks.
+    """
+    global FRAMEWORK_LOADERS
+    if loader_callable not in FRAMEWORK_LOADERS:
+        FRAMEWORK_LOADERS.add(loader_callable)
+    return loader_callable

@@ -105,12 +105,43 @@ You can flush the broker by running `rapidq-flush`
 
 ### Integrating with web frameworks
 It can be easily integrated with Flask and FastAPI applications. A simple Flask and FastAPI example is in **example** directory.
-Currently RapidQ cannot be easily integrated with Django. Django support is coming in next version.
+Currently RapidQ has experimental support for Django.
 
-### Local development
-For local development in windows, you can use either of the following ways to get Redis working.
-1) Redis for windows from: https://github.com/redis-windows/redis-windows
-2) Using redis with WSL: https://redis.io/docs/latest/operate/oss_and_stack/install/archive/install-redis/install-redis-on-windows/
-3) Using a remote Redis server.
+### Setting up with Django
+An example project is available in `example` directory.
+
+Create a file in your django project's directory: `your_project/rapidq.py`
+```python
+
+import os
+from rapidq import RapidQ
+
+# Configure Django settings module in env.
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "test_project.settings")
+
+# app instance.
+app = RapidQ()
+
+```
+
+Then you need to import this app in your `your_project/__init__.py`. This ensures the app is loaded when Django starts.
+
+`your_project/__init__.py:`
+
+```python
+from .rapidq import app
+
+__all__ = ('app', )
+```
+
+By default Rapidq automatically discovers `tasks` modules from all `INSTALLED_APPS`. <br>
+If you want to use a different module name use the below variable in your django settings module.
+
+`your_project/settings.py:`
+```python
+DEFAULT_AUTO_DISCOVER_MODULES = ("tasks",)
+```
+
+If you like this project, drop a &#x2B50;. And help is always welcome via issues or pull requests.
 
 ----------
