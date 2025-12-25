@@ -13,4 +13,4 @@ def test_func(msg):
 
 
 if __name__ == "__main__":
-    test_func.delay(msg="Hello, I'm running")
+    test_func.enqueue(msg="Hello, I'm running")

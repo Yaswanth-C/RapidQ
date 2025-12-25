@@ -24,8 +24,8 @@ class BackGroundTask:
     def __call__(self, *args, **kwargs) -> Any:
         return self.func(*args, **kwargs)
 
-    def delay(self, *args, **kwargs) -> Message:
-        """Queue the task for processing later."""
+    def enqueue(self, *args, **kwargs) -> Message:
+        """Enqueue the task for execution by a worker."""
         message = Message(
             task_name=self.name,
             queue_name=DEFAULT_QUEUE_NAME,
@@ -34,6 +34,10 @@ class BackGroundTask:
         )
         self.broker.enqueue_message(message)
         return message
+
+    def delay(self, *args, **kwargs) -> Message:
+        """Alias for `enqueue` provided for Celery compatibility."""
+        return self.enqueue(*args, **kwargs)
 
 
 def background_task(name: str) -> Callable[[Callable[..., Any]], BackGroundTask]:
