@@ -1,6 +1,6 @@
 [project]
 name = "RapidQ"
-version = "0.3.0"
+version = "0.4.0a1"
 description = "A lightweight and fast background task processing library for Python, developed with simplicity in mind."
 authors = [
     {name = "Yaswanth C",email = "yaswanthc.dev@gmail.com"}
