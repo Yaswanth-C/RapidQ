@@ -2,7 +2,7 @@ import os
 from importlib import import_module
 
 from rapidq.constants import DEFAULT_AUTO_DISCOVER_MODULES
-from rapidq.registry import framework_loader
+from rapidq.registry import framework_loader, post_execution_hook, pre_execution_hook
 
 LOAD_ERROR = "Django is not installed!"
 
@@ -28,6 +28,13 @@ class DjangoSetup:
 
         django.setup()
 
+    def setup_hooks(self) -> None:
+        """Setup hooks to close db connections"""
+        from django.db import close_old_connections
+
+        pre_execution_hook(close_old_connections)
+        post_execution_hook(close_old_connections)
+
     def autodiscover_tasks(self, django_settings) -> None:
         auto_discover_modules = getattr(
             django_settings,
@@ -52,4 +59,5 @@ class DjangoSetup:
             return None
         self.setup_django()
         self.autodiscover_tasks(django_settings)
+        self.setup_hooks()
         return None
