@@ -2,6 +2,9 @@ from typing import Any, Callable
 
 FRAMEWORK_LOADERS: set[Callable] = set()
 
+PRE_EXECUTION_HOOKS: set[Callable] = set()
+POST_EXECUTION_HOOKS: set[Callable] = set()
+
 
 class TaskRegistry:
     """
@@ -30,6 +33,27 @@ def framework_loader(loader_callable: Callable[..., None]):
     Registers a callable for initializing web frameworks.
     """
     global FRAMEWORK_LOADERS
-    if loader_callable not in FRAMEWORK_LOADERS:
-        FRAMEWORK_LOADERS.add(loader_callable)
+    FRAMEWORK_LOADERS.add(loader_callable)
     return loader_callable
+
+
+def pre_execution_hook(function: Callable):
+    """
+    Registers a pre-execution hook.
+    The hooks can be any callable object that takes 3 arguments - `message`,
+    `task_name`, and the `worker` itself. Or it should accept **kwargs.
+    """
+    global PRE_EXECUTION_HOOKS
+    PRE_EXECUTION_HOOKS.add(function)
+    return function
+
+
+def post_execution_hook(function: Callable):
+    """
+    Registers a post-execution hook.
+    The hooks can be any callable object that takes 4 arguments - `message`,
+    `task_name`, `result` and the `worker` itself. Or it should accept **kwargs.
+    """
+    global POST_EXECUTION_HOOKS
+    POST_EXECUTION_HOOKS.add(function)
+    return function

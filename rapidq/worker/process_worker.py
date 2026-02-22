@@ -8,7 +8,12 @@ from typing import Any, Callable
 
 from rapidq.constants import DEFAULT_IDLE_TIME, WorkerState
 from rapidq.message import Message
-from rapidq.registry import FRAMEWORK_LOADERS, TaskRegistry
+from rapidq.registry import (
+    FRAMEWORK_LOADERS,
+    POST_EXECUTION_HOOKS,
+    PRE_EXECUTION_HOOKS,
+    TaskRegistry,
+)
 from rapidq.utils import import_module
 
 
@@ -102,6 +107,31 @@ class Worker:
             self.shutdown_event.set()
             self.flush_tasks()
 
+    def run_pre_hooks(self, message: Message) -> None:
+        """
+        Runs the registered pre execution hooks.
+        """
+        for hook_func in PRE_EXECUTION_HOOKS:
+            try:
+                hook_func(message=message, task_name=message.task_name, worker=self)
+            except Exception as e:
+                self.logger(f"pre-hook error: {e}")
+
+    def run_post_hooks(self, message: Message, result: Any) -> None:
+        """
+        Runs the registered post execution hooks.
+        """
+        for hook_func in POST_EXECUTION_HOOKS:
+            try:
+                hook_func(
+                    message=message,
+                    task_name=message.task_name,
+                    result=result,
+                    worker=self,
+                )
+            except Exception as e:
+                self.logger(f"post-hook error: {e}")
+
     def process_task(self, raw_message: bytes):
         """Process the given message. This is where the registered callables are executed."""
         message = Message.deserialize(raw_message)
@@ -111,6 +141,9 @@ class Worker:
             self.logger(f"Got unregistered task `{message.task_name}`")
             return 1
 
+        self.run_pre_hooks(message=message)
+
+        _task_result = None
         try:
             self.logger(f"[{message.message_id}] [{message.task_name}]: Received.")
             _task_result = task_callable(*message.args, **message.kwargs)
@@ -120,6 +153,9 @@ class Worker:
             self.logger(f"[{message.message_id}] [{message.task_name}]: Error.")
         else:
             self.logger(f"[{message.message_id}] [{message.task_name}]: Finished.")
+
+        self.run_post_hooks(message=message, result=_task_result)
+
         return 0
 
     def run(self):
