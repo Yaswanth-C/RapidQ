@@ -27,6 +27,9 @@ pip install rapidq
 #### It requires: <br>
    - No configurations for local setup. Although some broker property can be configured.
 
+### Spawn safety over fork hell
+RapidQ workers uses spawn to create processes on all platforms to retain predictability and thread + memory safety. But spawn uses a little more memory than fork based workers.
+
 ----------
 ### Motivation
 Simply put - I just wanted to see if I could do it.  <br>
