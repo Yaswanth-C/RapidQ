@@ -3,6 +3,7 @@ import os
 import sys
 from argparse import Namespace
 
+from rapidq import __version__
 from rapidq.broker import Broker, get_broker
 from rapidq.constants import CPU_COUNT
 from rapidq.master import main_process
@@ -40,7 +41,7 @@ def main():
     """
     args = parse_args()
     import_module(args.module)
-    print("Welcome to RapidQ!")
+    print(f"Welcome to RapidQ! ({__version__})")
     main_process(workers=args.workers, module_name=args.module)
     return 0
 
