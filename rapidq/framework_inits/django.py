@@ -1,5 +1,6 @@
 import os
 from importlib import import_module
+from typing import Any
 
 from rapidq.constants import DEFAULT_AUTO_DISCOVER_MODULES
 from rapidq.registry import framework_loader, post_execution_hook, pre_execution_hook
@@ -8,7 +9,7 @@ LOAD_ERROR = "Django is not installed!"
 
 
 @framework_loader
-def load_django(worker):
+def load_django(worker) -> None:
     django_settings_module = os.environ.get("DJANGO_SETTINGS_MODULE")
     if not django_settings_module:
         return None
@@ -35,7 +36,7 @@ class DjangoSetup:
         pre_execution_hook(close_old_connections)
         post_execution_hook(close_old_connections)
 
-    def autodiscover_tasks(self, django_settings) -> None:
+    def autodiscover_tasks(self, django_settings: Any) -> None:
         auto_discover_modules = getattr(
             django_settings,
             "RAPIDQ_TASK_DISCOVER_MODULES",

@@ -1,9 +1,14 @@
-from typing import Any, Callable
+from __future__ import annotations
 
-FRAMEWORK_LOADERS: set[Callable] = set()
+from typing import TYPE_CHECKING, Any, Callable
 
-PRE_EXECUTION_HOOKS: set[Callable] = set()
-POST_EXECUTION_HOOKS: set[Callable] = set()
+if TYPE_CHECKING:
+    from rapidq.decorators import BackGroundTask
+
+FRAMEWORK_LOADERS: set[Callable[..., Any]] = set()
+
+PRE_EXECUTION_HOOKS: set[Callable[..., Any]] = set()
+POST_EXECUTION_HOOKS: set[Callable[..., Any]] = set()
 
 
 class TaskRegistry:
@@ -12,7 +17,7 @@ class TaskRegistry:
     """
 
     @classmethod
-    def register(cls, task) -> None:
+    def register(cls, task: "BackGroundTask") -> None:
         if "tasks" not in cls.__dict__:
             cls.tasks: dict[str, Callable[..., Any]] = {}
         if task.name in cls.tasks:
@@ -28,7 +33,9 @@ class TaskRegistry:
         return tasks.get(name)
 
 
-def framework_loader(loader_callable: Callable[..., None]):
+def framework_loader(
+    loader_callable: Callable[..., Any],
+) -> Callable[..., Any]:
     """
     Registers a callable for initializing web frameworks.
     """
@@ -37,7 +44,9 @@ def framework_loader(loader_callable: Callable[..., None]):
     return loader_callable
 
 
-def pre_execution_hook(function: Callable):
+def pre_execution_hook(
+    function: Callable[..., Any],
+) -> Callable[..., Any]:
     """
     Registers a pre-execution hook.
     The hooks can be any callable object that takes 3 arguments - `message`,
@@ -48,7 +57,9 @@ def pre_execution_hook(function: Callable):
     return function
 
 
-def post_execution_hook(function: Callable):
+def post_execution_hook(
+    function: Callable[..., Any],
+) -> Callable[..., Any]:
     """
     Registers a post-execution hook.
     The hooks can be any callable object that takes 4 arguments - `message`,
