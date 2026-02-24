@@ -2,7 +2,7 @@ import os
 import queue
 import sys
 import time
-from multiprocessing import Event, Process, Queue, Value
+from multiprocessing import Event, Process, Queue, Value, set_start_method
 from multiprocessing.sharedctypes import Synchronized
 from multiprocessing.synchronize import Event as SyncEvent
 from typing import Any, Callable
@@ -202,6 +202,7 @@ class RapidQ:
 
 def main_process(workers: int, module_name: str) -> None:
     """Instantiates and runs the master application"""
+    set_start_method("spawn")
     master = RapidQ(workers=workers, module_name=module_name, init_as_app=True)
     if not master.broker.is_alive():
         master.logger("Error: unable to access broker, shutting down.")
