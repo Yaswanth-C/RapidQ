@@ -1,8 +1,9 @@
+import logging
 import os
 import queue
 import sys
 import time
-from multiprocessing import Event, Process, Queue, Value, set_start_method
+from multiprocessing import Event, Pipe, Process, Queue, Value, set_start_method
 from multiprocessing.sharedctypes import Synchronized
 from multiprocessing.synchronize import Event as SyncEvent
 from typing import Any, Callable
@@ -11,6 +12,7 @@ from rapidq.broker import Broker, get_broker
 from rapidq.constants import CPU_COUNT, DEFAULT_IDLE_TIME, WorkerState
 from rapidq.decorators import BackGroundTask
 from rapidq.decorators import background_task as task_decorator
+from rapidq.log_watcher import LogWatcher, PipeHandler, configure_logger
 from rapidq.utils import import_module
 from rapidq.worker.process_worker import Worker
 
@@ -39,6 +41,10 @@ class RapidQ:
         self.pid: int = os.getpid()
         self.broker: Broker = get_broker()
 
+        self._shutdown = False
+        self.log_read_pipe, self.log_write_pipe = Pipe(duplex=False)
+        self.logger = configure_logger(name="Master", logging_pipe=self.log_write_pipe)
+
     def config_from_module(self, module_path: str) -> None:
         module = import_module(module_path)
 
@@ -54,9 +60,6 @@ class RapidQ:
     def task(self, name: str) -> Callable[[Callable[..., Any]], BackGroundTask]:
         """Decorator for callables to be registered as task."""
         return task_decorator(name)
-
-    def logger(self, message: str) -> None:
-        print(f"Master: [PID: {self.pid}] {message}")
 
     def _create_worker(self, worker_num: int) -> Worker:
         """Create and return a single Worker instance."""
@@ -116,12 +119,12 @@ class RapidQ:
 
     def wait_boot_up(self) -> None:
         """Wait for workers to fully boot up"""
-        while True:
+        while not self._shutdown:
             try:
                 # wait for all the workers to boot up.
                 if self.process_counter.value == self.no_of_workers:
                     break
-                self.logger("waiting for workers to boot up...")
+                self.logger.info("waiting for workers to boot up...")
                 time.sleep(DEFAULT_IDLE_TIME)
 
                 # check for any abnormal shutdown event.
@@ -135,7 +138,7 @@ class RapidQ:
     def main_loop(self) -> None:
         """Master main loop"""
         self.wait_boot_up()
-        while True:
+        while not self._shutdown:
             try:
                 pending_message_ids = self.queued_tasks()
                 if not pending_message_ids:
@@ -150,7 +153,7 @@ class RapidQ:
                         message_id = pending_message_ids.pop(0).decode()
                         message = self.broker.dequeue_message(message_id=message_id)
                     except UnicodeDecodeError as error:
-                        self.logger(
+                        self.logger.error(
                             f"Unable to decode message! message_id: {message_id} \n"
                             "You have configured different serialization strategies"
                             " for RapidQ and your project.\nCheck configuration."
@@ -161,13 +164,15 @@ class RapidQ:
                     try:
                         worker.task_queue.put(message, timeout=0.1)
                         # assign the task to the idle worker
-                        self.logger(f"assigning [{message_id}] to {worker.name}")
+                        self.logger.info(f"assigning [{message_id}] to {worker.name}")
                     except queue.Full:
                         pass
                 if not pending_message_ids:
                     time.sleep(DEFAULT_IDLE_TIME)
-            except (KeyboardInterrupt, Exception) as error:
-                print(error)
+            except KeyboardInterrupt:
+                self.shutdown()
+            except Exception as error:
+                self.logger.error(error)
                 self.abnormal_shutdown()
 
     def abnormal_shutdown(self) -> None:
@@ -175,39 +180,55 @@ class RapidQ:
         sys.exit(1)
 
     def shutdown(self) -> None:
-        self.logger("Preparing to shutdown ...")
+        self.logger.info("Preparing to shutdown ...")
+        self._shutdown = True
         for worker in self.workers.values():
             if not worker.process:
                 continue
             try:
-                self.logger(
+                self.logger.info(
                     f"Waiting for {worker.process.name} - PID: {worker.process.pid} to exit!"
                 )
                 worker.stop()
                 worker.join(timeout=5)
 
                 if worker.process.is_alive():
-                    self.logger(
+                    self.logger.debug(
                         f"Worker still alive, forcefully killing. PID: {worker.process.pid}"
                     )
                     worker.process.terminate()
                     worker.join(timeout=1)
             except Exception as error:
-                self.logger(
+                self.logger.error(
                     f"Error while shutting down worker {worker.process.name}: {error}"
                 )
 
-        self.logger("Shutting down master")
+        self.logger.info("Shutting down master")
 
 
 def main_process(workers: int, module_name: str) -> None:
     """Instantiates and runs the master application"""
     set_start_method("spawn")
     master = RapidQ(workers=workers, module_name=module_name, init_as_app=True)
+
+    logger_stop_event = Event()
+    logging_thread = LogWatcher(
+        log_pipe=master.log_read_pipe,
+        workers=master.workers,
+        stop_event=logger_stop_event,
+    )
+    logging_thread.start()
+
     if not master.broker.is_alive():
-        master.logger("Error: unable to access broker, shutting down.")
+        master.logger.error("Unable to access broker, shutting down.")
+        logger_stop_event.set()
+        logging_thread.join()
         master.abnormal_shutdown()
 
     master.create_workers()
     master.start_workers()
     master.main_loop()
+
+    master.logger.info("   Bye...")
+    logger_stop_event.set()
+    logging_thread.join()

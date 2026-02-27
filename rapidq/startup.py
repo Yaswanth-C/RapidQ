@@ -41,7 +41,7 @@ def main():
     """
     args = parse_args()
     import_module(args.module)
-    print(f"Welcome to RapidQ! ({__version__})")
+    sys.stdout.write(f"\nWelcome to RapidQ! ({__version__})\n\n")
     main_process(workers=args.workers, module_name=args.module)
     return 0
 
