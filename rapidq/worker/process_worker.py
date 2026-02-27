@@ -1,12 +1,16 @@
+import logging
 import os
+import sys
 import time
-from multiprocessing import Process, Queue, Value
+from logging import Logger
+from multiprocessing import Pipe, Process, Queue, Value
 from multiprocessing.sharedctypes import Synchronized
 from multiprocessing.synchronize import Event as SyncEvent
 from queue import Empty
 from typing import Any, Callable
 
 from rapidq.constants import DEFAULT_IDLE_TIME, WorkerState
+from rapidq.log_watcher import PipeHandler, configure_logger
 from rapidq.message import Message
 from rapidq.registry import (
     FRAMEWORK_LOADERS,
@@ -44,28 +48,26 @@ class Worker:
         self.shutdown_event: SyncEvent = shutdown_event
         self.counter: Synchronized = process_counter
         self.state: Synchronized = state
+        self.log_read_pipe, self.log_write_pipe = Pipe(duplex=False)
         # TODO: module_name has to be specified some other way,
         # or has to be removed completely
         self.module_name: str = module_name
 
     def __call__(self):
         """Start the worker"""
+
+        self.logger = configure_logger(self.name, self.log_write_pipe)
         try:
             self.start()
         except Exception as error:
             self.stop()
-            self.logger("Startup failed!")
-            self.logger(str(error))
+            self.logger.error("Startup failed!")
+            self.logger.error(str(error))
 
     def update_state(self, state: int):
         """Updates a worker state"""
         with self.state.get_lock():
             self.state.value = state
-
-    def logger(self, message: str):
-        """For logging messages."""
-        # TODO: implement logging
-        print(f"{self.name} [PID: {self.pid}]: {message}")
 
     def start(self):
         """Start the worker."""
@@ -74,7 +76,7 @@ class Worker:
             import_module(self.module_name)
 
         self.pid = os.getpid()
-        self.logger(f"starting with PID: {self.pid}")
+        self.logger.info(f"Starting with PID: {self.pid}")
 
         # initialize any web framework loaders if any.
         initialize_framework_loaders(self)
@@ -115,7 +117,7 @@ class Worker:
             try:
                 hook_func(message=message, task_name=message.task_name, worker=self)
             except Exception as e:
-                self.logger(f"pre-hook error: {e}")
+                self.logger.error(f"pre-hook error: {e}")
 
     def run_post_hooks(self, message: Message, result: Any) -> None:
         """
@@ -130,7 +132,7 @@ class Worker:
                     worker=self,
                 )
             except Exception as e:
-                self.logger(f"post-hook error: {e}")
+                self.logger.error(f"post-hook error: {e}")
 
     def process_task(self, raw_message: bytes):
         """Process the given message. This is where the registered callables are executed."""
@@ -138,21 +140,20 @@ class Worker:
         self.update_state(WorkerState.BUSY)
         task_callable = TaskRegistry.fetch(message.task_name)
         if not task_callable:
-            self.logger(f"Got unregistered task `{message.task_name}`")
+            self.logger.warning(f"Got unregistered task `{message.task_name}`")
             return 1
 
         self.run_pre_hooks(message=message)
 
         _task_result = None
         try:
-            self.logger(f"[{message.message_id}] [{message.task_name}]: Received.")
+            self.logger.info(f"[{message.message_id}] [{message.task_name}]: Received.")
             _task_result = task_callable(*message.args, **message.kwargs)
         except Exception as error:
-            # TODO: change logger
-            self.logger(str(error))
-            self.logger(f"[{message.message_id}] [{message.task_name}]: Error.")
+            self.logger.error(str(error))
+            self.logger.error(f"[{message.message_id}] [{message.task_name}]: Error.")
         else:
-            self.logger(f"[{message.message_id}] [{message.task_name}]: Finished.")
+            self.logger.info(f"[{message.message_id}] [{message.task_name}]: Finished.")
 
         self.run_post_hooks(message=message, result=_task_result)
 
@@ -160,7 +161,7 @@ class Worker:
 
     def run(self):
         """Implements a worker's execution logic."""
-        self.logger(f"worker {self.name} started with pid: {self.pid}")
+        self.logger.info(f"{self.name} started with PID:{self.pid}")
 
         # Run the loop until this event is set by master or the worker itself.
         while not self.shutdown_event.is_set():
