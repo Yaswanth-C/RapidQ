@@ -30,6 +30,12 @@ def parse_args() -> Namespace:
         default=CPU_COUNT,
         help="The number of worker processes to use.",
     )
+    parser.add_argument(
+        "--log-file",
+        type=str,
+        required=False,
+        help="A path to log file for writing application logs.",
+    )
 
     args = parser.parse_args()
     return args
@@ -41,8 +47,7 @@ def main():
     """
     args = parse_args()
     import_module(args.module)
-    print(f"Welcome to RapidQ! ({__version__})")
-    main_process(workers=args.workers, module_name=args.module)
+    main_process(args, version=__version__)
     return 0
 
 

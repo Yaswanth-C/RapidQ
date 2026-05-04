@@ -17,7 +17,7 @@ class TaskRegistry:
     """
 
     @classmethod
-    def register(cls, task: "BackGroundTask") -> None:
+    def register(cls, task: BackGroundTask) -> None:
         if "tasks" not in cls.__dict__:
             cls.tasks: dict[str, Callable[..., Any]] = {}
         if task.name in cls.tasks:

@@ -5,6 +5,8 @@ from rapidq.message import Message
 
 class Broker(ABC):
 
+    broker_spec: str
+
     @abstractmethod
     def is_alive(self) -> bool:
         """Test if broker is alive."""
