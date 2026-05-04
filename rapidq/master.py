@@ -3,6 +3,7 @@ import os
 import queue
 import sys
 import time
+from argparse import Namespace
 from multiprocessing import Event, Pipe, Process, Queue, Value, set_start_method
 from multiprocessing.sharedctypes import Synchronized
 from multiprocessing.synchronize import Event as SyncEvent
@@ -206,29 +207,33 @@ class RapidQ:
         self.logger.info("Shutting down master")
 
 
-def main_process(workers: int, module_name: str) -> None:
+def main_process(args: Namespace, version: str) -> None:
     """Instantiates and runs the master application"""
     set_start_method("spawn")
-    master = RapidQ(workers=workers, module_name=module_name, init_as_app=True)
+    master = RapidQ(workers=args.workers, module_name=args.module, init_as_app=True)
+    master.logger.info("Welcome to RapidQ! (%s)\n", version)
 
     logger_stop_event = Event()
     logging_thread = LogWatcher(
         log_pipe=master.log_read_pipe,
         workers=master.workers,
         stop_event=logger_stop_event,
+        logging_file=args.log_file,
     )
     logging_thread.start()
 
+    master.logger.debug("Trying to connect to broker...")
     if not master.broker.is_alive():
         master.logger.error("Unable to access broker, shutting down.")
         logger_stop_event.set()
         logging_thread.join()
         master.abnormal_shutdown()
+    master.logger.debug("Connected to broker, %s \n", master.broker.broker_spec)
 
     master.create_workers()
     master.start_workers()
     master.main_loop()
 
-    master.logger.info("   Bye...")
+    master.logger.info("Bye...\n")
     logger_stop_event.set()
     logging_thread.join()

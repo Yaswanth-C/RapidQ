@@ -18,4 +18,9 @@ DEFAULT_QUEUE_NAME: str = "default"
 DEFAULT_IDLE_TIME: float = 0.5  # 500ms
 DEFAULT_AUTO_DISCOVER_MODULES: tuple = ("tasks",)
 
+LOGGING_FMT = (
+    "%(asctime)s | %(levelname)-8s | %(name)-16s [PID:%(process)-5d] -> %(message)s\n"
+)
+LOGGING_FMT_TIME = "%a %d %b %Y %H:%M:%S.%6f"
+
 CPU_COUNT: int = min(4, cpu_count())

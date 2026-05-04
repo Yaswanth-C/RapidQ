@@ -30,11 +30,11 @@ class RedisBroker(Broker):
                 f"serialization must be in {list(MessageTypeRegistry.message_types)}"
             )
         self.serialization = serialization
+        conn_url = os.environ.get("RAPIDQ_BROKER_URL", self.DEFAULT_URL)
 
-        connection_params.setdefault(
-            "url", os.environ.get("RAPIDQ_BROKER_URL", self.DEFAULT_URL)
-        )
+        connection_params.setdefault("url", conn_url)
         self.client = Redis.from_url(**connection_params)
+        self.broker_spec = f"Redis: {conn_url}"
 
     def is_alive(self) -> bool:
         try:

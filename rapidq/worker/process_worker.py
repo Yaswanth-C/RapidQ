@@ -161,7 +161,7 @@ class Worker:
 
     def run(self):
         """Implements a worker's execution logic."""
-        self.logger.info(f"{self.name} started with PID:{self.pid}")
+        self.logger.info(f"{self.name} started with PID:{self.pid}\n")
 
         # Run the loop until this event is set by master or the worker itself.
         while not self.shutdown_event.is_set():
