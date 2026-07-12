@@ -3,7 +3,7 @@ import os
 import sys
 import time
 from logging import Logger
-from multiprocessing import Pipe, Process, Queue, Value
+from multiprocessing import Pipe, Process, Queue, Value, current_process
 from multiprocessing.sharedctypes import Synchronized
 from multiprocessing.synchronize import Event as SyncEvent
 from queue import Empty
@@ -80,6 +80,7 @@ class Worker:
 
     def start(self):
         """Start the worker."""
+        self.process = current_process()
         self.update_state(WorkerState.BOOTING)
         self._sync_config()
         self.pid = os.getpid()
@@ -94,6 +95,12 @@ class Worker:
         with self.counter.get_lock():
             self.counter.value += 1
         return self.run()
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        # required since we have state duplication.
+        state["process"] = None  # prevents pickling the process
+        return state
 
     def flush_tasks(self):
         """
