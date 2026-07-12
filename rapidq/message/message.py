@@ -44,6 +44,14 @@ class Message:
     A class for handling messages.
     """
 
+    __slots__ = (
+        "task_name",
+        "queue_name",
+        "args",
+        "kwargs",
+        "message_id",
+    )
+
     def __init__(
         self,
         task_name: str,
