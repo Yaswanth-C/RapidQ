@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, ClassVar
 
 if TYPE_CHECKING:
     from rapidq.decorators import BackGroundTask
@@ -16,10 +16,10 @@ class TaskRegistry:
     Class for registering tasks with name.
     """
 
+    tasks: ClassVar[dict[str, Callable[..., Any]]] = {}
+
     @classmethod
     def register(cls, task: BackGroundTask) -> None:
-        if "tasks" not in cls.__dict__:
-            cls.tasks: dict[str, Callable[..., Any]] = {}
         if task.name in cls.tasks:
             raise RuntimeError(
                 f"The name `{task.name}` has already registered for a different callable.\n"
@@ -29,8 +29,7 @@ class TaskRegistry:
 
     @classmethod
     def fetch(cls, name: str) -> Callable[..., Any] | None:
-        tasks: dict[str, Callable[..., Any]] = cls.__dict__.get("tasks", {})
-        return tasks.get(name)
+        return cls.tasks.get(name)
 
 
 def framework_loader(
