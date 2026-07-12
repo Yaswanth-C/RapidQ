@@ -9,6 +9,8 @@ from multiprocessing.synchronize import Event as SyncEvent
 from queue import Empty
 from typing import Any, Callable
 
+from rapidq.config import QueueConfig
+from rapidq.config import settings as global_settings
 from rapidq.constants import DEFAULT_IDLE_TIME, WorkerState
 from rapidq.log_watcher import PipeHandler, configure_logger
 from rapidq.message import Message
@@ -39,6 +41,7 @@ class Worker:
         process_counter: Synchronized,
         state: Synchronized,
         module_name: str,
+        config: QueueConfig,
     ):
         self.process: Process | None = None
         self.pid: int | None = None
@@ -52,6 +55,7 @@ class Worker:
         # TODO: module_name has to be specified some other way,
         # or has to be removed completely
         self.module_name: str = module_name
+        self.config: QueueConfig = config
 
     def __call__(self):
         """Start the worker"""
@@ -69,14 +73,20 @@ class Worker:
         with self.state.get_lock():
             self.state.value = state
 
+    def _sync_config(self) -> None:
+        """Sync configurations from master."""
+        global_settings.broker_url = self.config.broker_url
+        global_settings.broker_serializer = self.config.broker_serializer
+
     def start(self):
         """Start the worker."""
         self.update_state(WorkerState.BOOTING)
-        if self.module_name:
-            import_module(self.module_name)
-
+        self._sync_config()
         self.pid = os.getpid()
         self.logger.info(f"Starting with PID: {self.pid}")
+
+        if self.module_name:
+            import_module(self.module_name)
 
         # initialize any web framework loaders if any.
         initialize_framework_loaders(self)

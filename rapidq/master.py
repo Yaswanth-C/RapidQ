@@ -10,6 +10,7 @@ from multiprocessing.synchronize import Event as SyncEvent
 from typing import Any, Callable
 
 from rapidq.broker import Broker, get_broker
+from rapidq.config import load_config_from_module, settings
 from rapidq.constants import CPU_COUNT, DEFAULT_IDLE_TIME, WorkerState
 from rapidq.decorators import BackGroundTask
 from rapidq.decorators import background_task as task_decorator
@@ -48,15 +49,7 @@ class RapidQ:
 
     def config_from_module(self, module_path: str) -> None:
         module = import_module(module_path)
-
-        configurable_keys = (
-            "RAPIDQ_BROKER_SERIALIZER",
-            "RAPIDQ_BROKER_URL",
-        )
-        for key in configurable_keys:
-            if not getattr(module, key, None):
-                continue
-            os.environ[key] = str(getattr(module, key))
+        load_config_from_module(module)
 
     def task(self, name: str) -> Callable[[Callable[..., Any]], BackGroundTask]:
         """Decorator for callables to be registered as task."""
@@ -75,6 +68,7 @@ class RapidQ:
             process_counter=self.process_counter,
             state=worker_state,
             module_name=self.module_name,
+            config=settings,
         )
 
         # NOTE: I am well aware of the state duplication when the process is started

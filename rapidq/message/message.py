@@ -1,10 +1,10 @@
 import json
-import os
 import pickle
 import uuid
 from abc import ABC, abstractmethod
 from typing import Any, Callable, ClassVar, Type, TypeVar
 
+from rapidq.config import settings
 from rapidq.constants import DEFAULT_SERIALIZATION, Serialization
 
 MsgRegistryT = TypeVar("MsgRegistryT", bound="MessageTypeRegistry")
@@ -78,9 +78,7 @@ class Message:
     @classmethod
     def _get_serializer(cls: Type[MsgT]) -> Type[MessageType]:
         """Get the configured serializer based on environment settings."""
-        serialization = os.environ.get(
-            "RAPIDQ_BROKER_SERIALIZER", DEFAULT_SERIALIZATION
-        )
+        serialization = settings.broker_serializer
         return MessageTypeRegistry.fetch(msg_type=serialization)
 
     @classmethod

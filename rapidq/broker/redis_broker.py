@@ -1,10 +1,9 @@
-import os
 from typing import Any, cast
 
 from redis import ConnectionError, Redis
 
 from rapidq.broker.base import Broker
-from rapidq.constants import DEFAULT_SERIALIZATION
+from rapidq.config import settings
 from rapidq.message import Message, MessageTypeRegistry
 
 
@@ -22,15 +21,13 @@ class RedisBroker(Broker):
         if not connection_params:
             connection_params: dict[str, Any] = {}
 
-        serialization = os.environ.get(
-            "RAPIDQ_BROKER_SERIALIZER", DEFAULT_SERIALIZATION
-        )
+        serialization = settings.broker_serializer
         if serialization not in MessageTypeRegistry.message_types:
             raise RuntimeError(
                 f"serialization must be in {list(MessageTypeRegistry.message_types)}"
             )
         self.serialization = serialization
-        conn_url = os.environ.get("RAPIDQ_BROKER_URL", self.DEFAULT_URL)
+        conn_url = settings.broker_url
 
         connection_params.setdefault("url", conn_url)
         self.client = Redis.from_url(**connection_params)
